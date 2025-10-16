@@ -280,6 +280,10 @@ TEST_F(ParserFixture, let_invalid) {
     verify_no_root("let a;");
 }
 
+TEST_F(ParserFixture, let_valid_assignment) {
+    verify_single("let a:Int64 = null;", "Let(n=Id(a), t=Id(Int64), i=Id(null))");
+}
+
 TEST_F(ParserFixture, let_with_stmt) {
     verify_single("let a = 2 * 3;", "Let(n=Id(a), i=Mult(l=Int(2), r=Int(3)))");
 }
@@ -418,7 +422,7 @@ TEST_F(ParserFixture, class_bad_name) {
 }
 
 TEST_F(ParserFixture, func_bad_name) {
-    verify_no_root("func f.g() : Void { };");
+    verify_no_root("func f.g() : Null { };");
 }
 
 TEST_F(ParserFixture, let_bad_name) {

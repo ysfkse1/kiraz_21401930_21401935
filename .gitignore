@@ -1,4 +1,4 @@
 /build
 /build-*
 *.user
-wabt
+.DS_Store
