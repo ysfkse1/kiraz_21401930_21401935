@@ -17,6 +17,23 @@ extern std::shared_ptr<Token> curtoken;
 /* -------------------- LEXER KURALLARI -------------------- */
 
 %%
+
+"+"        { colno += yyleng; curtoken = Token::New<OpPlus>();       return OP_PLUS; }
+"-"        { colno += yyleng; curtoken = Token::New<OpMinus>();      return OP_MINUS; }
+"*"        { colno += yyleng; curtoken = Token::New<OpMult>();       return OP_MULT; }
+"/"        { colno += yyleng; curtoken = Token::New<OpDivF>();       return OP_DIVF; }
+
+
+
+[a-zA-Z_][a-zA-Z0-9_]*  { colno += yyleng; curtoken = Token::New<Identifier>(yytext);    return IDENTIFIER; }
+[0-9]+                  { colno += yyleng; curtoken = Token::New<Integer>(10, yytext);   return L_INTEGER; }
+
+
+[ \t\r\n]+              { colno += yyleng; }
+.                       { colno += yyleng; curtoken = Token::New<Rejected>(yytext); return YYUNDEF; }
+%%
+
+/*
 "import"   { colno += yyleng; curtoken = Token::New<Import>();   return KW_IMPORT; }
 "func"     { colno += yyleng; curtoken = Token::New<Func>();     return KW_FUNC; }
 "if"       { colno += yyleng; curtoken = Token::New<If>();       return KW_IF; }
@@ -41,22 +58,4 @@ extern std::shared_ptr<Token> curtoken;
 "<="       { colno += yyleng; curtoken = Token::New<OpLessEq>();     return OP_LESSEQ; }
 ">="       { colno += yyleng; curtoken = Token::New<OpGreaterEq>();  return OP_GREATEREQ; }
 "<"        { colno += yyleng; curtoken = Token::New<OpLess>();       return OP_LESS; }
-">"        { colno += yyleng; curtoken = Token::New<OpGreater>();    return OP_GREATER; }
-"+"        { colno += yyleng; curtoken = Token::New<OpPlus>();       return OP_PLUS; }
-"-"        { colno += yyleng; curtoken = Token::New<OpMinus>();      return OP_MINUS; }
-"*"        { colno += yyleng; curtoken = Token::New<OpMult>();       return OP_MULT; }
-"/"        { colno += yyleng; curtoken = Token::New<OpDivF>();       return OP_DIVF; }
-
-
-
-[a-zA-Z_][a-zA-Z0-9_]*  { colno += yyleng; curtoken = Token::New<Identifier>(yytext);    return IDENTIFIER; }
-[0-9]+                  { colno += yyleng; curtoken = Token::New<Integer>(10, yytext);   return L_INTEGER; }
-\"([^\\\"]|\\.)*\"      { colno += yyleng; curtoken = Token::New<StringLiteral>(yytext); return L_STRING; }
-
-
-[ \t\r\n]+              { colno += yyleng; }
-.                       { colno += yyleng; curtoken = Token::New<Rejected>(yytext); return YYUNDEF; }
-%%
-
-
-int yywrap(void) { return 1; }
+">"        { colno += yyleng; curtoken = Token::New<OpGreater>();    return OP_GREATER; }*/

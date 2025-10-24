@@ -13,7 +13,10 @@ extern int yylineno;
 
 %token    REJECTED
 
-/* TODO */
+%token    OP_PLUS OP_MINUS OP_MULT OP_DIVF
+%token    OP_SCOLON
+%token    L_INTEGER
+%token    IDENTIFIER
 
 %%
 
