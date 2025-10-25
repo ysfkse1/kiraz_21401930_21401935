@@ -51,6 +51,18 @@ public:
     OpRparen() : Operator(OP_RPAREN) {}
     std::string as_string() const override { return "OP_RPAREN"; }
 };
+
+class OpColon : public Operator {
+public:
+    OpColon() : Operator(OP_COLON) {}
+    std::string as_string() const override { return "OP_COLON"; }
+};
+
+class OpAssign : public Operator {
+public:
+    OpAssign() : Operator(OP_ASSIGN) {}
+    std::string as_string() const override { return "OP_ASSIGN"; }
+};
 }
 
 #endif

@@ -14,6 +14,16 @@ private:
     long long m_value;
 };
 
+class Id : public Node {
+public:
+    Id(const std::string& name) : m_name(name) {}
+    std::string as_string() const override {
+        return fmt::format("Id({})", m_name);
+    }
+private:
+    std::string m_name;
+};
+
 class SignedNode : public Node {
 public:
 // TODO

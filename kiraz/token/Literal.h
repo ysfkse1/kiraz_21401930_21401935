@@ -11,6 +11,7 @@ class Identifier : public Token {
 public:
     Identifier(const char* text) : Token(IDENTIFIER), text(text) {}
     std::string as_string() const override { return "Identifier(" + text + ")"; }
+    std::string get_text() const { return text; }
 private:
     std::string text;
 };

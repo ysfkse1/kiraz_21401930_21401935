@@ -7,6 +7,7 @@
 #include <kiraz/Token.h>
 #include <kiraz/token/Literal.h>
 #include <kiraz/token/Operator.h>
+#include <kiraz/token/Keyword.h>
 // https://stackoverflow.com/questions/9611682/flexlexer-support-for-unicode/9617585#9617585
 
 using namespace token;
@@ -18,11 +19,15 @@ extern std::shared_ptr<Token> curtoken;
 
 %%
 
+"let"      { colno += yyleng; curtoken = Token::New<Let>();         return KW_LET; }
+
 "+"        { colno += yyleng; curtoken = Token::New<OpPlus>();       return OP_PLUS; }
 "-"        { colno += yyleng; curtoken = Token::New<OpMinus>();      return OP_MINUS; }
 "*"        { colno += yyleng; curtoken = Token::New<OpMult>();       return OP_MULT; }
 "/"        { colno += yyleng; curtoken = Token::New<OpDivF>();       return OP_DIVF; }
 ";"        { colno += yyleng; curtoken = Token::New<OpScolon>();     return OP_SCOLON; }
+":"        { colno += yyleng; curtoken = Token::New<OpColon>();      return OP_COLON; }
+"="        { colno += yyleng; curtoken = Token::New<OpAssign>();     return OP_ASSIGN; }
 
 "("        { colno += yyleng; curtoken = Token::New<OpLparen>();     return OP_LPAREN; }
 ")"        { colno += yyleng; curtoken = Token::New<OpRparen>();     return OP_RPAREN; }
@@ -45,14 +50,9 @@ extern std::shared_ptr<Token> curtoken;
 "return"   { colno += yyleng; curtoken = Token::New<Return>();   return KW_RETURN; }
 
 
-":"        { colno += yyleng; curtoken = Token::New<Colon>();     return OP_COLON; }
 ","        { colno += yyleng; curtoken = Token::New<OpComma>();   return OP_COMMA; }
-"="        { colno += yyleng; curtoken = Token::New<OpAssign>();  return OP_ASSIGN; }
 "{"        { colno += yyleng; curtoken = Token::New<OpLbrace>();  return OP_LBRACE; }
 "}"        { colno += yyleng; curtoken = Token::New<OpRbrace>();  return OP_RBRACE; }
-";"        { colno += yyleng; curtoken = Token::New<OpScolon>();  return OP_SCOLON; }
-"("        { colno += yyleng; curtoken = Token::New<OpLparen>();  return OP_LPAREN; }
-")"        { colno += yyleng; curtoken = Token::New<OpRparen>();  return OP_RPAREN; }
 
 
 "=="       { colno += yyleng; curtoken = Token::New<OpEqual>();      return OP_EQUAL; }

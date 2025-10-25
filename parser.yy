@@ -9,6 +9,7 @@
 #include <kiraz/ast/Operator.h>
 #include <kiraz/ast/Literal.h>
 #include <kiraz/ast/Module.h>
+#include <kiraz/ast/Statement.h>
 
 #include <kiraz/token/Literal.h>
 
@@ -22,8 +23,9 @@ extern int yylineno;
 
 %token    REJECTED
 
+%token    KW_LET
 %token    OP_PLUS OP_MINUS OP_MULT OP_DIVF
-%token    OP_SCOLON
+%token    OP_SCOLON OP_COLON OP_ASSIGN
 %token    L_INTEGER
 %token    IDENTIFIER
 %token    OP_LPAREN OP_RPAREN
@@ -40,6 +42,24 @@ module: stmt {
     ;
 
 stmt: expr OP_SCOLON { $$ = $1; }
+    | let_stmt { $$ = $1; }
+    ;
+
+identifier: IDENTIFIER {
+        auto tok = std::dynamic_pointer_cast<token::Identifier>(curtoken);
+        $$ = Node::add<ast::Id>(tok->get_text());
+    }
+    ;
+
+let_stmt: KW_LET identifier OP_ASSIGN expr OP_SCOLON {
+        $$ = Node::add<ast::Let>($2, nullptr, $4);
+    }
+    | KW_LET identifier OP_COLON identifier OP_SCOLON {
+        $$ = Node::add<ast::Let>($2, $4, nullptr);
+    }
+    | KW_LET identifier OP_COLON identifier OP_ASSIGN expr OP_SCOLON {
+        $$ = Node::add<ast::Let>($2, $4, $6);
+    }
     ;
 
 expr: L_INTEGER { 
