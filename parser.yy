@@ -26,6 +26,7 @@ extern int yylineno;
 %token    OP_SCOLON
 %token    L_INTEGER
 %token    IDENTIFIER
+%token    OP_LPAREN OP_RPAREN
 
 %left OP_PLUS OP_MINUS
 %left OP_MULT OP_DIVF
@@ -45,6 +46,7 @@ expr: L_INTEGER {
         auto tok = std::dynamic_pointer_cast<token::Integer>(curtoken);
         $$ = Node::add<ast::Integer>(tok->get_value()); 
     }
+    | OP_LPAREN expr OP_RPAREN { $$ = $2;}
     | expr OP_PLUS expr { $$ = Node::add<ast::Add>($1, $3); }
     | expr OP_MINUS expr { $$ = Node::add<ast::Sub>($1, $3); }
     | expr OP_MULT expr { $$ = Node::add<ast::Mult>($1, $3); }

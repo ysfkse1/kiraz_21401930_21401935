@@ -24,7 +24,8 @@ extern std::shared_ptr<Token> curtoken;
 "/"        { colno += yyleng; curtoken = Token::New<OpDivF>();       return OP_DIVF; }
 ";"        { colno += yyleng; curtoken = Token::New<OpScolon>();     return OP_SCOLON; }
 
-
+"("        { colno += yyleng; curtoken = Token::New<OpLparen>();     return OP_LPAREN; }
+")"        { colno += yyleng; curtoken = Token::New<OpRparen>();     return OP_RPAREN; }
 
 [a-zA-Z_][a-zA-Z0-9_]*  { colno += yyleng; curtoken = Token::New<Identifier>(yytext);    return IDENTIFIER; }
 [0-9]+                  { colno += yyleng; curtoken = Token::New<Integer>(10, yytext);   return L_INTEGER; }
@@ -60,3 +61,6 @@ extern std::shared_ptr<Token> curtoken;
 ">="       { colno += yyleng; curtoken = Token::New<OpGreaterEq>();  return OP_GREATEREQ; }
 "<"        { colno += yyleng; curtoken = Token::New<OpLess>();       return OP_LESS; }
 ">"        { colno += yyleng; curtoken = Token::New<OpGreater>();    return OP_GREATER; }*/
+
+
+
