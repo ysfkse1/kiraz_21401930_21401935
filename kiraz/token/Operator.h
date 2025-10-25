@@ -33,6 +33,12 @@ public:
     OpDivF() : Operator(OP_DIVF) {}
     std::string as_string() const override { return "OP_DIVF"; }
 };
+
+class OpScolon : public Operator {
+public:
+    OpScolon() : Operator(OP_SCOLON) {}
+    std::string as_string() const override { return "OP_SCOLON"; }
+};
 }
 
 #endif

@@ -19,6 +19,7 @@ class Integer : public Token {
 public:
     Integer(int base, const char* text) : Token(L_INTEGER), base(base), text(text) {}
     std::string as_string() const override { return "Integer(" + text + ")"; }
+    long long get_value() const { return std::stoll(text, nullptr, base); }
 private:
     int base;
     std::string text;

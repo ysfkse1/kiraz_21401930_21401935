@@ -1,14 +1,23 @@
+%code requires {
+    #include <memory>
+    class Node;
+}
+
 %{
 #include "lexer.hpp"
 
 #include <kiraz/ast/Operator.h>
 #include <kiraz/ast/Literal.h>
+#include <kiraz/ast/Module.h>
 
 #include <kiraz/token/Literal.h>
 
 int yyerror(const char *msg);
 extern std::shared_ptr<Token> curtoken;
 extern int yylineno;
+
+#define YYSTYPE std::shared_ptr<Node>
+#define YYSTYPE_IS_DECLARED 1
 %}
 
 %token    REJECTED
@@ -18,11 +27,29 @@ extern int yylineno;
 %token    L_INTEGER
 %token    IDENTIFIER
 
+%left OP_PLUS OP_MINUS
+%left OP_MULT OP_DIVF
+
 %%
 
-/* TODO */
+module: stmt { 
+        std::vector<Node::Ptr> stmts = {$1};
+        Node::add<ast::Module>(stmts);
+    }
+    ;
 
-stmt: %empty
+stmt: expr OP_SCOLON { $$ = $1; }
+    ;
+
+expr: L_INTEGER { 
+        auto tok = std::dynamic_pointer_cast<token::Integer>(curtoken);
+        $$ = Node::add<ast::Integer>(tok->get_value()); 
+    }
+    | expr OP_PLUS expr { $$ = Node::add<ast::Add>($1, $3); }
+    | expr OP_MINUS expr { $$ = Node::add<ast::Sub>($1, $3); }
+    | expr OP_MULT expr { $$ = Node::add<ast::Mult>($1, $3); }
+    | expr OP_DIVF expr { $$ = Node::add<ast::DivF>($1, $3); }
+    ;
 
 %%
 

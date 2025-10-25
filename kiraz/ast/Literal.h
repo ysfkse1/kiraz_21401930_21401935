@@ -6,7 +6,12 @@
 namespace ast {
 class Integer : public Node {
 public:
-// TODO
+    Integer(long long value) : m_value(value) {}
+    std::string as_string() const override {
+        return fmt::format("Int({})", m_value);
+    }
+private:
+    long long m_value;
 };
 
 class SignedNode : public Node {

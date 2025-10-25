@@ -22,6 +22,7 @@ extern std::shared_ptr<Token> curtoken;
 "-"        { colno += yyleng; curtoken = Token::New<OpMinus>();      return OP_MINUS; }
 "*"        { colno += yyleng; curtoken = Token::New<OpMult>();       return OP_MULT; }
 "/"        { colno += yyleng; curtoken = Token::New<OpDivF>();       return OP_DIVF; }
+";"        { colno += yyleng; curtoken = Token::New<OpScolon>();     return OP_SCOLON; }
 
 
 
