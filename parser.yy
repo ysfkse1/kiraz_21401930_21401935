@@ -32,6 +32,7 @@ extern int yylineno;
 
 %left OP_PLUS OP_MINUS
 %left OP_MULT OP_DIVF
+%right UMINUS
 
 %%
 
@@ -68,6 +69,7 @@ expr: L_INTEGER {
     }
     | identifier { $$ = $1; }
     | OP_LPAREN expr OP_RPAREN { $$ = $2;}
+    | OP_MINUS expr %prec UMINUS { $$ = Node::add<ast::SignedNode>($2); }
     | expr OP_PLUS expr { $$ = Node::add<ast::Add>($1, $3); }
     | expr OP_MINUS expr { $$ = Node::add<ast::Sub>($1, $3); }
     | expr OP_MULT expr { $$ = Node::add<ast::Mult>($1, $3); }

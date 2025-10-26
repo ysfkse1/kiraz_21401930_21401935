@@ -26,8 +26,12 @@ private:
 
 class SignedNode : public Node {
 public:
-// TODO
-
+    SignedNode(Node::Ptr operand) : m_operand(operand) {}
+    std::string as_string() const override {
+        return fmt::format("Signed(OP_MINUS, {})", m_operand->as_string());
+    }
+private:
+    Node::Ptr m_operand;
 };
 }
 
