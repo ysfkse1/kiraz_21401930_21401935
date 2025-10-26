@@ -31,6 +31,20 @@ private:
     Node::Ptr m_init;
 };
 
+class Assign : public Node {
+public:
+    Assign(Node::Ptr left, Node::Ptr right) 
+        : m_left(left), m_right(right) {}
+    
+    std::string as_string() const override {
+        return fmt::format("Assign(l={}, r={})", m_left->as_string(), m_right->as_string());
+    }
+    
+private:
+    Node::Ptr m_left;
+    Node::Ptr m_right;
+};
+
 }
 
 #endif

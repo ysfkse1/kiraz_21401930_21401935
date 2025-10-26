@@ -31,6 +31,7 @@ extern int yylineno;
 %token    IDENTIFIER
 %token    OP_LPAREN OP_RPAREN
 
+%right OP_ASSIGN
 %left OP_EQUAL OP_GREATER OP_GREATEREQ OP_LESS OP_LESSEQ
 %left OP_PLUS OP_MINUS
 %left OP_MULT OP_DIVF
@@ -46,6 +47,7 @@ module: stmt {
 
 stmt: expr OP_SCOLON { $$ = $1; }
     | let_stmt { $$ = $1; }
+    | identifier OP_ASSIGN expr OP_SCOLON { $$ = Node::add<ast::Assign>($1, $3); }
     ;
 
 identifier: IDENTIFIER {
