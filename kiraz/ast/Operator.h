@@ -51,6 +51,61 @@ private:
     Node::Ptr m_right;
 };
 
+class OpEq : public Node {
+public:
+    OpEq(Node::Ptr left, Node::Ptr right) : m_left(left), m_right(right) {}
+    std::string as_string() const override {
+        return fmt::format("OpEq(l={}, r={})", m_left->as_string(), m_right->as_string());
+    }
+private:
+    Node::Ptr m_left;
+    Node::Ptr m_right;
+};
+
+class OpGt : public Node {
+public:
+    OpGt(Node::Ptr left, Node::Ptr right) : m_left(left), m_right(right) {}
+    std::string as_string() const override {
+        return fmt::format("OpGt(l={}, r={})", m_left->as_string(), m_right->as_string());
+    }
+private:
+    Node::Ptr m_left;
+    Node::Ptr m_right;
+};
+
+class OpGe : public Node {
+public:
+    OpGe(Node::Ptr left, Node::Ptr right) : m_left(left), m_right(right) {}
+    std::string as_string() const override {
+        return fmt::format("OpGe(l={}, r={})", m_left->as_string(), m_right->as_string());
+    }
+private:
+    Node::Ptr m_left;
+    Node::Ptr m_right;
+};
+
+class OpLt : public Node {
+public:
+    OpLt(Node::Ptr left, Node::Ptr right) : m_left(left), m_right(right) {}
+    std::string as_string() const override {
+        return fmt::format("OpLt(l={}, r={})", m_left->as_string(), m_right->as_string());
+    }
+private:
+    Node::Ptr m_left;
+    Node::Ptr m_right;
+};
+
+class OpLe : public Node {
+public:
+    OpLe(Node::Ptr left, Node::Ptr right) : m_left(left), m_right(right) {}
+    std::string as_string() const override {
+        return fmt::format("OpLe(l={}, r={})", m_left->as_string(), m_right->as_string());
+    }
+private:
+    Node::Ptr m_left;
+    Node::Ptr m_right;
+};
+
 }
 
 #endif // KIRAZ_AST_OPERATOR_H

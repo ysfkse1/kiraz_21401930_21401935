@@ -63,6 +63,36 @@ public:
     OpAssign() : Operator(OP_ASSIGN) {}
     std::string as_string() const override { return "OP_ASSIGN"; }
 };
+
+class OpEqual : public Operator {
+public:
+    OpEqual() : Operator(OP_EQUAL) {}
+    std::string as_string() const override { return "OP_EQUAL"; }
+};
+
+class OpGreater : public Operator {
+public:
+    OpGreater() : Operator(OP_GREATER) {}
+    std::string as_string() const override { return "OP_GREATER"; }
+};
+
+class OpGreaterEq : public Operator {
+public:
+    OpGreaterEq() : Operator(OP_GREATEREQ) {}
+    std::string as_string() const override { return "OP_GREATEREQ"; }
+};
+
+class OpLess : public Operator {
+public:
+    OpLess() : Operator(OP_LESS) {}
+    std::string as_string() const override { return "OP_LESS"; }
+};
+
+class OpLessEq : public Operator {
+public:
+    OpLessEq() : Operator(OP_LESSEQ) {}
+    std::string as_string() const override { return "OP_LESSEQ"; }
+};
 }
 
 #endif

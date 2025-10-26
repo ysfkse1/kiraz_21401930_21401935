@@ -1,8 +1,8 @@
 #ifndef KIRAZ_AST_LITERAL_H
 #define KIRAZ_AST_LITERAL_H
- 
+
 #include <kiraz/Node.h>
- 
+
 namespace ast {
 class Integer : public Node {
 public:
@@ -13,7 +13,7 @@ public:
 private:
     long long m_value;
 };
- 
+
 class Id : public Node {
 public:
     Id(const std::string& name) : m_name(name) {}
@@ -23,7 +23,7 @@ public:
 private:
     std::string m_name;
 };
- 
+
 class SignedNode : public Node {
 public:
     SignedNode(Node::Ptr operand) : m_operand(operand) {}
@@ -33,7 +33,7 @@ public:
 private:
     Node::Ptr m_operand;
 };
- 
+
 class Str : public Node {
 public:
     Str(const std::string& value) : m_value(value) {}
@@ -44,5 +44,5 @@ private:
     std::string m_value;
 };
 }
- 
+
 #endif
