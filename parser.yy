@@ -66,6 +66,7 @@ expr: L_INTEGER {
         auto tok = std::dynamic_pointer_cast<token::Integer>(curtoken);
         $$ = Node::add<ast::Integer>(tok->get_value()); 
     }
+    | identifier { $$ = $1; }
     | OP_LPAREN expr OP_RPAREN { $$ = $2;}
     | expr OP_PLUS expr { $$ = Node::add<ast::Add>($1, $3); }
     | expr OP_MINUS expr { $$ = Node::add<ast::Sub>($1, $3); }

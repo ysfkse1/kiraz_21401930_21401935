@@ -142,6 +142,14 @@ add_library(kiraz STATIC
     main.h
 )
 
+# one of us working on mac and the other working on linux so we needed to
+# add these lines in order not to have trouble with mac
+# as there are some compile errors regarding flex library not being found
+find_library(FL_LIBRARY fl PATHS /opt/homebrew/opt/flex/lib /usr/local/opt/flex/lib)
+if(FL_LIBRARY)
+    target_link_libraries(kiraz PRIVATE ${FL_LIBRARY})
+endif()
+
 add_executable(kirazc main.cpp)
 target_link_libraries(kirazc PRIVATE kiraz)
 add_definitions(-DYYDEBUG=1)
