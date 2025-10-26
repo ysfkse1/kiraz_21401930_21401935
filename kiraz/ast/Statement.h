@@ -45,6 +45,72 @@ private:
     Node::Ptr m_right;
 };
 
+class FArg : public Node {
+public:
+    FArg(Node::Ptr name, Node::Ptr type) 
+        : m_name(name), m_type(type) {}
+    
+    std::string as_string() const override {
+        return fmt::format("FArg(n={}, t={})", m_name->as_string(), m_type->as_string());
+    }
+    
+private:
+    Node::Ptr m_name;
+    Node::Ptr m_type;
+};
+
+class FuncArgs : public Node {
+public:
+    FuncArgs(std::vector<Node::Ptr> args) 
+        : m_args(args) {}
+    
+    std::string as_string() const override {
+        std::string result = "FuncArgs([";
+        for (size_t i = 0; i < m_args.size(); i++) {
+            if (i > 0) result += ", ";
+            result += m_args[i]->as_string();
+        }
+        result += "])";
+        return result;
+    }
+    
+private:
+    std::vector<Node::Ptr> m_args;
+};
+
+class Func : public Node {
+public:
+    Func(Node::Ptr name, Node::Ptr args, Node::Ptr ret_type, std::vector<Node::Ptr> stmts) 
+        : m_name(name), m_args(args), m_ret_type(ret_type), m_stmts(stmts) {}
+    
+    std::string as_string() const override {
+        std::string result = "Func(";
+        result += fmt::format("n={}, a=", m_name->as_string());
+        
+        // If args is null, print empty array
+        if (!m_args) {
+            result += "[]";
+        } else {
+            result += m_args->as_string();
+        }
+        
+        result += fmt::format(", r={}, s=[", m_ret_type->as_string());
+        
+        for (size_t i = 0; i < m_stmts.size(); i++) {
+            if (i > 0) result += ", ";
+            result += m_stmts[i]->as_string();
+        }
+        result += "])";
+        return result;
+    }
+    
+private:
+    Node::Ptr m_name;
+    Node::Ptr m_args;
+    Node::Ptr m_ret_type;
+    std::vector<Node::Ptr> m_stmts;
+};
+
 }
 
 #endif

@@ -93,6 +93,24 @@ public:
     OpLessEq() : Operator(OP_LESSEQ) {}
     std::string as_string() const override { return "OP_LESSEQ"; }
 };
+
+class OpComma : public Operator {
+public:
+    OpComma() : Operator(OP_COMMA) {}
+    std::string as_string() const override { return "OP_COMMA"; }
+};
+
+class OpLbrace : public Operator {
+public:
+    OpLbrace() : Operator(OP_LBRACE) {}
+    std::string as_string() const override { return "OP_LBRACE"; }
+};
+
+class OpRbrace : public Operator {
+public:
+    OpRbrace() : Operator(OP_RBRACE) {}
+    std::string as_string() const override { return "OP_RBRACE"; }
+};
 }
 
 #endif

@@ -12,6 +12,12 @@ public:
     std::string as_string() const override { return "KW_LET"; }
 };
 
+class Func : public Token {
+public:
+    Func() : Token(KW_FUNC) {}
+    std::string as_string() const override { return "KW_FUNC"; }
+};
+
 }
 
 #endif

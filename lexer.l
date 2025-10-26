@@ -20,6 +20,7 @@ extern std::shared_ptr<Token> curtoken;
 %%
 
 "let"      { colno += yyleng; curtoken = Token::New<Let>();         return KW_LET; }
+"func"     { colno += yyleng; curtoken = Token::New<Func>();        return KW_FUNC; }
 
 "+"        { colno += yyleng; curtoken = Token::New<OpPlus>();       return OP_PLUS; }
 "-"        { colno += yyleng; curtoken = Token::New<OpMinus>();      return OP_MINUS; }
@@ -28,9 +29,12 @@ extern std::shared_ptr<Token> curtoken;
 ";"        { colno += yyleng; curtoken = Token::New<OpScolon>();     return OP_SCOLON; }
 ":"        { colno += yyleng; curtoken = Token::New<OpColon>();      return OP_COLON; }
 "="        { colno += yyleng; curtoken = Token::New<OpAssign>();     return OP_ASSIGN; }
+","        { colno += yyleng; curtoken = Token::New<OpComma>();      return OP_COMMA; }
 
 "("        { colno += yyleng; curtoken = Token::New<OpLparen>();     return OP_LPAREN; }
 ")"        { colno += yyleng; curtoken = Token::New<OpRparen>();     return OP_RPAREN; }
+"{"        { colno += yyleng; curtoken = Token::New<OpLbrace>();     return OP_LBRACE; }
+"}"        { colno += yyleng; curtoken = Token::New<OpRbrace>();     return OP_RBRACE; }
 
 "=="       { colno += yyleng; curtoken = Token::New<OpEqual>();      return OP_EQUAL; }
 ">="       { colno += yyleng; curtoken = Token::New<OpGreaterEq>();  return OP_GREATEREQ; }

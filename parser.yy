@@ -23,13 +23,13 @@ extern int yylineno;
 
 %token    REJECTED
 
-%token    KW_LET
+%token    KW_LET KW_FUNC
 %token    OP_PLUS OP_MINUS OP_MULT OP_DIVF
-%token    OP_SCOLON OP_COLON OP_ASSIGN
+%token    OP_SCOLON OP_COLON OP_ASSIGN OP_COMMA
 %token    OP_EQUAL OP_GREATER OP_GREATEREQ OP_LESS OP_LESSEQ
 %token    L_INTEGER L_STRING
 %token    IDENTIFIER
-%token    OP_LPAREN OP_RPAREN
+%token    OP_LPAREN OP_RPAREN OP_LBRACE OP_RBRACE
 
 %right OP_ASSIGN
 %left OP_EQUAL OP_GREATER OP_GREATEREQ OP_LESS OP_LESSEQ
@@ -48,6 +48,7 @@ module: stmt {
 stmt: expr OP_SCOLON { $$ = $1; }
     | let_stmt { $$ = $1; }
     | identifier OP_ASSIGN expr OP_SCOLON { $$ = Node::add<ast::Assign>($1, $3); }
+    | func_stmt { $$ = $1; }
     ;
 
 identifier: IDENTIFIER {
@@ -64,6 +65,37 @@ let_stmt: KW_LET identifier OP_ASSIGN expr OP_SCOLON {
     }
     | KW_LET identifier OP_COLON identifier OP_ASSIGN expr OP_SCOLON {
         $$ = Node::add<ast::Let>($2, $4, $6);
+    }
+    ;
+
+func_stmt: KW_FUNC identifier OP_LPAREN OP_RPAREN OP_COLON identifier OP_LBRACE OP_RBRACE OP_SCOLON {
+        std::vector<Node::Ptr> empty_stmts;
+        $$ = Node::add<ast::Func>($2, nullptr, $6, empty_stmts);
+    }
+    | KW_FUNC identifier OP_LPAREN func_args OP_RPAREN OP_COLON identifier OP_LBRACE OP_RBRACE OP_SCOLON {
+        std::vector<Node::Ptr> empty_stmts;
+        $$ = Node::add<ast::Func>($2, $4, $7, empty_stmts);
+    }
+    | KW_FUNC identifier OP_LPAREN func_args OP_RPAREN OP_COLON identifier OP_LBRACE stmt_list OP_RBRACE OP_SCOLON {
+        std::vector<Node::Ptr> stmts = {$9};
+        $$ = Node::add<ast::Func>($2, $4, $7, stmts);
+    }
+    ;
+
+func_args: func_arg {
+        std::vector<Node::Ptr> args = {$1};
+        $$ = Node::add<ast::FuncArgs>(args);
+    }
+    ;
+
+func_arg: identifier OP_COLON identifier {
+        $$ = Node::add<ast::FArg>($1, $3);
+    }
+    ;
+
+stmt_list: stmt {
+        // Single statement - we'll handle as vector in func_stmt
+        $$ = $1;
     }
     ;
 
