@@ -36,6 +36,18 @@ public:
     std::string as_string() const override { return "KW_WHILE"; }
 };
 
+class Return : public Token {
+public:
+    Return() : Token(KW_RETURN) {}
+    std::string as_string() const override { return "KW_RETURN"; }
+};
+
+class Import : public Token {
+public:
+    Import() : Token(KW_IMPORT) {}
+    std::string as_string() const override { return "KW_IMPORT"; }
+};
+
 }
 
 #endif

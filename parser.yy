@@ -23,9 +23,9 @@ extern int yylineno;
 
 %token    REJECTED
 
-%token    KW_LET KW_FUNC KW_IF KW_ELSE KW_WHILE
+%token    KW_LET KW_FUNC KW_IF KW_ELSE KW_WHILE KW_RETURN KW_IMPORT
 %token    OP_PLUS OP_MINUS OP_MULT OP_DIVF
-%token    OP_SCOLON OP_COLON OP_ASSIGN OP_COMMA
+%token    OP_SCOLON OP_COLON OP_ASSIGN OP_COMMA OP_DOT
 %token    OP_EQUAL OP_GREATER OP_GREATEREQ OP_LESS OP_LESSEQ
 %token    L_INTEGER L_STRING
 %token    IDENTIFIER
@@ -35,6 +35,7 @@ extern int yylineno;
 %left OP_EQUAL OP_GREATER OP_GREATEREQ OP_LESS OP_LESSEQ
 %left OP_PLUS OP_MINUS
 %left OP_MULT OP_DIVF
+%left OP_DOT
 %right UMINUS
 
 %%
@@ -51,6 +52,8 @@ stmt: expr OP_SCOLON { $$ = $1; }
     | func_stmt { $$ = $1; }
     | if_stmt { $$ = $1; }
     | while_stmt { $$ = $1; }
+    | return_stmt { $$ = $1; }
+    | import_stmt { $$ = $1; }
     ;
 
 identifier: IDENTIFIER {
@@ -67,6 +70,16 @@ let_stmt: KW_LET identifier OP_ASSIGN expr OP_SCOLON {
     }
     | KW_LET identifier OP_COLON identifier OP_ASSIGN expr OP_SCOLON {
         $$ = Node::add<ast::Let>($2, $4, $6);
+    }
+    ;
+
+return_stmt: KW_RETURN expr OP_SCOLON {
+        $$ = Node::add<ast::Return>($2);
+    }
+    ;
+
+import_stmt: KW_IMPORT identifier OP_SCOLON {
+        $$ = Node::add<ast::Import>($2);
     }
     ;
 
@@ -95,7 +108,20 @@ func_arg: identifier OP_COLON identifier {
     }
     ;
 
+call_args: expr {
+        std::vector<Node::Ptr> args = {$1};
+        $$ = Node::add<ast::ListNode>(args);
+    }
+    | call_args OP_COMMA expr {
+        auto list = std::dynamic_pointer_cast<ast::ListNode>($1);
+        std::vector<Node::Ptr> args = list->get_items();
+        args.push_back($3);
+        $$ = Node::add<ast::ListNode>(args);
+    }
+    ;
+
 stmt_list: stmt {
+        // Single statement - we'll handle as vector in func_stmt
         $$ = $1;
     }
     ;
@@ -184,6 +210,14 @@ expr: L_INTEGER {
     | expr OP_GREATEREQ expr { $$ = Node::add<ast::OpGe>($1, $3); }
     | expr OP_LESS expr { $$ = Node::add<ast::OpLt>($1, $3); }
     | expr OP_LESSEQ expr { $$ = Node::add<ast::OpLe>($1, $3); }
+    | expr OP_DOT identifier { $$ = Node::add<ast::Dot>($1, $3); }
+    | expr OP_LPAREN OP_RPAREN {
+        $$ = Node::add<ast::Call>($1, Node::add<ast::FuncArgs>(std::vector<Node::Ptr>{}));
+    }
+    | expr OP_LPAREN call_args OP_RPAREN {
+        auto list = std::dynamic_pointer_cast<ast::ListNode>($3);
+        $$ = Node::add<ast::Call>($1, Node::add<ast::FuncArgs>(list->get_items()));
+    }
     ;
 
 %%

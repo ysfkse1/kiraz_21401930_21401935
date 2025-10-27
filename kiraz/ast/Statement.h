@@ -87,7 +87,7 @@ public:
         std::string result = "Func(";
         result += fmt::format("n={}, a=", m_name->as_string());
         
-        // If args is null, print empty array
+        
         if (!m_args) {
             result += "[]";
         } else {
@@ -200,6 +200,58 @@ public:
     
 private:
     std::vector<Node::Ptr> m_items;
+};
+
+class Return : public Node {
+public:
+    Return(Node::Ptr expr) : m_expr(expr) {}
+    
+    std::string as_string() const override {
+        return fmt::format("Return({})", m_expr->as_string());
+    }
+    
+private:
+    Node::Ptr m_expr;
+};
+
+class Import : public Node {
+public:
+    Import(Node::Ptr path) : m_path(path) {}
+    
+    std::string as_string() const override {
+        return fmt::format("Import({})", m_path->as_string());
+    }
+    
+private:
+    Node::Ptr m_path;
+};
+
+class Call : public Node {
+public:
+    Call(Node::Ptr name, Node::Ptr args) 
+        : m_name(name), m_args(args) {}
+    
+    std::string as_string() const override {
+        return fmt::format("Call(n={}, a={})", m_name->as_string(), m_args->as_string());
+    }
+    
+private:
+    Node::Ptr m_name;
+    Node::Ptr m_args;
+};
+
+class Dot : public Node {
+public:
+    Dot(Node::Ptr left, Node::Ptr right) 
+        : m_left(left), m_right(right) {}
+    
+    std::string as_string() const override {
+        return fmt::format("Dot(l={}, r={})", m_left->as_string(), m_right->as_string());
+    }
+    
+private:
+    Node::Ptr m_left;
+    Node::Ptr m_right;
 };
 
 }
