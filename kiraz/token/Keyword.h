@@ -18,6 +18,24 @@ public:
     std::string as_string() const override { return "KW_FUNC"; }
 };
 
+class If : public Token {
+public:
+    If() : Token(KW_IF) {}
+    std::string as_string() const override { return "KW_IF"; }
+};
+
+class Else : public Token {
+public:
+    Else() : Token(KW_ELSE) {}
+    std::string as_string() const override { return "KW_ELSE"; }
+};
+
+class While : public Token {
+public:
+    While() : Token(KW_WHILE) {}
+    std::string as_string() const override { return "KW_WHILE"; }
+};
+
 }
 
 #endif

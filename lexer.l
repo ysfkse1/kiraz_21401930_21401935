@@ -21,6 +21,9 @@ extern std::shared_ptr<Token> curtoken;
 
 "let"      { colno += yyleng; curtoken = Token::New<Let>();         return KW_LET; }
 "func"     { colno += yyleng; curtoken = Token::New<Func>();        return KW_FUNC; }
+"if"       { colno += yyleng; curtoken = Token::New<If>();          return KW_IF; }
+"else"     { colno += yyleng; curtoken = Token::New<Else>();        return KW_ELSE; }
+"while"    { colno += yyleng; curtoken = Token::New<While>();       return KW_WHILE; }
 
 "+"        { colno += yyleng; curtoken = Token::New<OpPlus>();       return OP_PLUS; }
 "-"        { colno += yyleng; curtoken = Token::New<OpMinus>();      return OP_MINUS; }

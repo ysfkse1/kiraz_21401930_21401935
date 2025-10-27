@@ -23,7 +23,7 @@ extern int yylineno;
 
 %token    REJECTED
 
-%token    KW_LET KW_FUNC
+%token    KW_LET KW_FUNC KW_IF KW_ELSE KW_WHILE
 %token    OP_PLUS OP_MINUS OP_MULT OP_DIVF
 %token    OP_SCOLON OP_COLON OP_ASSIGN OP_COMMA
 %token    OP_EQUAL OP_GREATER OP_GREATEREQ OP_LESS OP_LESSEQ
@@ -49,6 +49,8 @@ stmt: expr OP_SCOLON { $$ = $1; }
     | let_stmt { $$ = $1; }
     | identifier OP_ASSIGN expr OP_SCOLON { $$ = Node::add<ast::Assign>($1, $3); }
     | func_stmt { $$ = $1; }
+    | if_stmt { $$ = $1; }
+    | while_stmt { $$ = $1; }
     ;
 
 identifier: IDENTIFIER {
@@ -94,8 +96,71 @@ func_arg: identifier OP_COLON identifier {
     ;
 
 stmt_list: stmt {
-        // Single statement - we'll handle as vector in func_stmt
         $$ = $1;
+    }
+    ;
+
+if_stmt: KW_IF OP_LPAREN expr OP_RPAREN OP_LBRACE OP_RBRACE OP_SCOLON {
+        std::vector<Node::Ptr> empty_then;
+        $$ = Node::add<ast::If>($3, empty_then, nullptr);
+    }
+    | KW_IF OP_LPAREN expr OP_RPAREN OP_LBRACE stmt_list_multi OP_RBRACE OP_SCOLON {
+        auto list = std::dynamic_pointer_cast<ast::ListNode>($6);
+        $$ = Node::add<ast::If>($3, list->get_items(), nullptr);
+    }
+    | KW_IF OP_LPAREN expr OP_RPAREN OP_LBRACE OP_RBRACE KW_ELSE OP_LBRACE OP_RBRACE OP_SCOLON {
+        std::vector<Node::Ptr> empty_then;
+        std::vector<Node::Ptr> empty_else;
+        auto else_block = Node::add<ast::ElseBlock>(empty_else);
+        $$ = Node::add<ast::If>($3, empty_then, else_block);
+    }
+    | KW_IF OP_LPAREN expr OP_RPAREN OP_LBRACE stmt_list_multi OP_RBRACE KW_ELSE OP_LBRACE OP_RBRACE OP_SCOLON {
+        auto list = std::dynamic_pointer_cast<ast::ListNode>($6);
+        std::vector<Node::Ptr> empty_else;
+        auto else_block = Node::add<ast::ElseBlock>(empty_else);
+        $$ = Node::add<ast::If>($3, list->get_items(), else_block);
+    }
+    | KW_IF OP_LPAREN expr OP_RPAREN OP_LBRACE OP_RBRACE KW_ELSE OP_LBRACE stmt_list_multi OP_RBRACE OP_SCOLON {
+        auto list = std::dynamic_pointer_cast<ast::ListNode>($9);
+        std::vector<Node::Ptr> empty_then;
+        auto else_block = Node::add<ast::ElseBlock>(list->get_items());
+        $$ = Node::add<ast::If>($3, empty_then, else_block);
+    }
+    | KW_IF OP_LPAREN expr OP_RPAREN OP_LBRACE stmt_list_multi OP_RBRACE KW_ELSE OP_LBRACE stmt_list_multi OP_RBRACE OP_SCOLON {
+        auto then_list = std::dynamic_pointer_cast<ast::ListNode>($6);
+        auto else_list = std::dynamic_pointer_cast<ast::ListNode>($10);
+        auto else_block = Node::add<ast::ElseBlock>(else_list->get_items());
+        $$ = Node::add<ast::If>($3, then_list->get_items(), else_block);
+    }
+    | KW_IF OP_LPAREN expr OP_RPAREN OP_LBRACE OP_RBRACE KW_ELSE if_stmt {
+        std::vector<Node::Ptr> empty_then;
+        $$ = Node::add<ast::If>($3, empty_then, $8);
+    }
+    | KW_IF OP_LPAREN expr OP_RPAREN OP_LBRACE stmt_list_multi OP_RBRACE KW_ELSE if_stmt {
+        auto list = std::dynamic_pointer_cast<ast::ListNode>($6);
+        $$ = Node::add<ast::If>($3, list->get_items(), $9);
+    }
+    ;
+
+stmt_list_multi: stmt {
+        std::vector<Node::Ptr> stmts = {$1};
+        $$ = Node::add<ast::ListNode>(stmts);
+    }
+    | stmt_list_multi stmt {
+        auto list = std::dynamic_pointer_cast<ast::ListNode>($1);
+        std::vector<Node::Ptr> stmts = list->get_items();
+        stmts.push_back($2);
+        $$ = Node::add<ast::ListNode>(stmts);
+    }
+    ;
+
+while_stmt: KW_WHILE OP_LPAREN expr OP_RPAREN OP_LBRACE OP_RBRACE OP_SCOLON {
+        std::vector<Node::Ptr> empty_stmts;
+        $$ = Node::add<ast::While>($3, empty_stmts);
+    }
+    | KW_WHILE OP_LPAREN expr OP_RPAREN OP_LBRACE stmt_list_multi OP_RBRACE OP_SCOLON {
+        auto list = std::dynamic_pointer_cast<ast::ListNode>($6);
+        $$ = Node::add<ast::While>($3, list->get_items());
     }
     ;
 

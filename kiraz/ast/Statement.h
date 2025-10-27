@@ -111,6 +111,97 @@ private:
     std::vector<Node::Ptr> m_stmts;
 };
 
+class If : public Node {
+public:
+    If(Node::Ptr condition, std::vector<Node::Ptr> then_stmts, Node::Ptr else_part) 
+        : m_condition(condition), m_then_stmts(then_stmts), m_else_part(else_part) {}
+    
+    std::string as_string() const override {
+        std::string result = "If(?=";
+        result += m_condition->as_string();
+        result += ", then=[";
+        
+        for (size_t i = 0; i < m_then_stmts.size(); i++) {
+            if (i > 0) result += ", ";
+            result += m_then_stmts[i]->as_string();
+        }
+        
+        result += "], else=";
+        
+        if (m_else_part) {
+            result += m_else_part->as_string();
+        } else {
+            result += "[]";
+        }
+        
+        result += ")";
+        return result;
+    }
+    
+private:
+    Node::Ptr m_condition;
+    std::vector<Node::Ptr> m_then_stmts;
+    Node::Ptr m_else_part; 
+};
+
+class ElseBlock : public Node {
+public:
+    ElseBlock(std::vector<Node::Ptr> stmts) 
+        : m_stmts(stmts) {}
+    
+    std::string as_string() const override {
+        std::string result = "[";
+        for (size_t i = 0; i < m_stmts.size(); i++) {
+            if (i > 0) result += ", ";
+            result += m_stmts[i]->as_string();
+        }
+        result += "]";
+        return result;
+    }
+    
+private:
+    std::vector<Node::Ptr> m_stmts;
+};
+
+class While : public Node {
+public:
+    While(Node::Ptr condition, std::vector<Node::Ptr> stmts) 
+        : m_condition(condition), m_stmts(stmts) {}
+    
+    std::string as_string() const override {
+        std::string result = "While(?=";
+        result += m_condition->as_string();
+        result += ", repeat=[";
+        
+        for (size_t i = 0; i < m_stmts.size(); i++) {
+            if (i > 0) result += ", ";
+            result += m_stmts[i]->as_string();
+        }
+        
+        result += "])";
+        return result;
+    }
+    
+private:
+    Node::Ptr m_condition;
+    std::vector<Node::Ptr> m_stmts;
+};
+
+
+class ListNode : public Node {
+public:
+    ListNode(std::vector<Node::Ptr> items) : m_items(items) {}
+    
+    std::string as_string() const override {
+        return "[ListNode]"; 
+    }
+    
+    std::vector<Node::Ptr> get_items() const { return m_items; }
+    
+private:
+    std::vector<Node::Ptr> m_items;
+};
+
 }
 
 #endif
