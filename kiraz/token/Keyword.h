@@ -48,6 +48,13 @@ public:
     std::string as_string() const override { return "KW_IMPORT"; }
 };
 
-}
+class Class : public Token {
+public:
+    Class() : Token(KW_CLASS) {}
+    std::string as_string() const override { return "KW_CLASS"; }
+};
+
+}  // namespace token
 
 #endif
+

@@ -254,6 +254,26 @@ private:
     Node::Ptr m_right;
 };
 
+class Class : public Node {
+public:
+    Class(Node::Ptr name, std::vector<Node::Ptr> stmts)
+        : m_name(name), m_stmts(stmts) {}
+    
+    std::string as_string() const override {
+        std::string result = "Class(n=" + m_name->as_string() + ", s=[";
+        for (size_t i = 0; i < m_stmts.size(); i++) {
+            if (i > 0) result += ", ";
+            result += m_stmts[i]->as_string();
+        }
+        result += "])";
+        return result;
+    }
+    
+private:
+    Node::Ptr m_name;
+    std::vector<Node::Ptr> m_stmts;
+};
+
 }
 
 #endif
