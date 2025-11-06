@@ -68,6 +68,9 @@ stmt: expr OP_SCOLON { $$ = $1; }
     | return_stmt { $$ = $1; }
     | import_stmt { $$ = $1; }
     | class_stmt { $$ = $1; }
+    | OP_LBRACE stmt_list_multi OP_RBRACE OP_SCOLON {
+        $$ = $2;
+    }
     ;
 
 identifier: IDENTIFIER {
@@ -111,6 +114,10 @@ func_stmt: KW_FUNC identifier OP_LPAREN OP_RPAREN OP_COLON identifier OP_LBRACE 
         std::vector<Node::Ptr> empty_stmts;
         $$ = Node::add<ast::Func>($2, nullptr, $6, empty_stmts);
     }
+    | KW_FUNC identifier OP_LPAREN OP_RPAREN OP_COLON identifier OP_LBRACE stmt_list_multi OP_RBRACE OP_SCOLON {
+        auto list = std::dynamic_pointer_cast<ast::ListNode>($8);
+        $$ = Node::add<ast::Func>($2, nullptr, $6, list->get_items());
+    }
     | KW_FUNC identifier OP_LPAREN func_args OP_RPAREN OP_COLON identifier OP_LBRACE OP_RBRACE OP_SCOLON {
         // Convert ListNode to FuncArgs
         auto list = std::dynamic_pointer_cast<ast::ListNode>($4);
@@ -118,12 +125,12 @@ func_stmt: KW_FUNC identifier OP_LPAREN OP_RPAREN OP_COLON identifier OP_LBRACE 
         std::vector<Node::Ptr> empty_stmts;
         $$ = Node::add<ast::Func>($2, func_args_node, $7, empty_stmts);
     }
-    | KW_FUNC identifier OP_LPAREN func_args OP_RPAREN OP_COLON identifier OP_LBRACE stmt_list OP_RBRACE OP_SCOLON {
+    | KW_FUNC identifier OP_LPAREN func_args OP_RPAREN OP_COLON identifier OP_LBRACE stmt_list_multi OP_RBRACE OP_SCOLON {
         // Convert ListNode to FuncArgs
         auto list = std::dynamic_pointer_cast<ast::ListNode>($4);
         auto func_args_node = Node::add<ast::FuncArgs>(list->get_items());
-        std::vector<Node::Ptr> stmts = {$9};
-        $$ = Node::add<ast::Func>($2, func_args_node, $7, stmts);
+        auto stmt_list = std::dynamic_pointer_cast<ast::ListNode>($9);
+        $$ = Node::add<ast::Func>($2, func_args_node, $7, stmt_list->get_items());
     }
     ;
 

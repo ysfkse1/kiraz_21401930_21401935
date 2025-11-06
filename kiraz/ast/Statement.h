@@ -193,7 +193,13 @@ public:
     ListNode(std::vector<Node::Ptr> items) : m_items(items) {}
     
     std::string as_string() const override {
-        return "[ListNode]"; 
+        std::string result = "[";
+        for (size_t i = 0; i < m_items.size(); i++) {
+            if (i > 0) result += ", ";
+            result += m_items[i]->as_string();
+        }
+        result += "]";
+        return result;
     }
     
     std::vector<Node::Ptr> get_items() const { return m_items; }
