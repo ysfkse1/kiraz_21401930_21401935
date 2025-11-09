@@ -132,6 +132,12 @@ add_library(kiraz STATIC
     kiraz/ast/Literal.h
     kiraz/ast/Literal.cpp
 
+    kiraz/ast/Statement.h
+    kiraz/ast/Statement.cpp
+
+    kiraz/ast/Module.h
+    kiraz/ast/Module.cpp
+
     ${BISON_PARSER_OUTPUTS}
     ${FLEX_LEXER_OUTPUTS}
 
@@ -141,6 +147,7 @@ add_library(kiraz STATIC
     lexer.hpp
     main.h
 )
+
 
 # one of us working on mac and the other working on linux so we needed to
 # add these lines in order not to have trouble with mac

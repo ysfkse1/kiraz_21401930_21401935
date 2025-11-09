@@ -1,10 +1,10 @@
-
 #include "Compiler.h"
 #include <cassert>
 
 #include <fmt/format.h>
 
 #include <resource/FILE_io_ki.h>
+#include <kiraz/ast/Literal.h>
 
 Node::Ptr SymbolTable::s_module_ki;
 Node::Ptr SymbolTable::s_module_io;
@@ -104,6 +104,20 @@ SymbolTable::SymbolTable()
     if (! s_module_io) {
         s_module_io = Compiler::current()->compile_module(FILE_io_ki);
     }
+    
+    add_symbol("Boolean", std::make_shared<ast::Id>("Boolean"));
+    add_symbol("Integer64", std::make_shared<ast::Id>("Integer64"));
+    add_symbol("String", std::make_shared<ast::Id>("String"));
+    add_symbol("Module", std::make_shared<ast::Id>("Module"));
+    add_symbol("Class", std::make_shared<ast::Id>("Class"));
+    add_symbol("Function", std::make_shared<ast::Id>("Function"));
+    add_symbol("Null", std::make_shared<ast::Id>("Null"));
+    
+    add_symbol("null", std::make_shared<ast::Id>("null"));
+    
+    add_symbol("and", std::make_shared<ast::Id>("and"));
+    add_symbol("or", std::make_shared<ast::Id>("or"));
+    add_symbol("not", std::make_shared<ast::Id>("not"));
 }
 
 SymbolTable::SymbolTable(ScopeType scope_type) : SymbolTable() {
@@ -112,9 +126,9 @@ SymbolTable::SymbolTable(ScopeType scope_type) : SymbolTable() {
 
 WasmContext::Coords WasmContext::add_to_memory(const std::string &s) {
     assert(! s.empty());
-    return {}; // TODO:
+    return {};
 }
 
 WasmContext::Coords WasmContext::add_to_memory(uint32_t s) {
-    return {}; // TODO:
+    return {};
 }

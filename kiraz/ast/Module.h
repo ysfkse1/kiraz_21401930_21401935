@@ -13,6 +13,8 @@ public:
     std::string as_string() const override {
         return fmt::format("Module({})", m_stmts);
     }
+
+    Ptr compute_stmt_type(SymbolTable &st) override;
     
 private:
     std::vector<Node::Ptr> m_stmts;

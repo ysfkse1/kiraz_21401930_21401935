@@ -24,6 +24,8 @@ public:
         result += ")";
         return result;
     }
+
+    Ptr add_to_symtab_ordered(SymbolTable &st) override;
     
 private:
     Node::Ptr m_name;
@@ -87,7 +89,6 @@ public:
         std::string result = "Func(";
         result += fmt::format("n={}, a=", m_name->as_string());
         
-        
         if (!m_args) {
             result += "[]";
         } else {
@@ -103,6 +104,9 @@ public:
         result += "])";
         return result;
     }
+
+    bool is_func() const override { return true; }
+    Ptr add_to_symtab_forward(SymbolTable &st) override;
     
 private:
     Node::Ptr m_name;
@@ -187,7 +191,6 @@ private:
     std::vector<Node::Ptr> m_stmts;
 };
 
-
 class ListNode : public Node {
 public:
     ListNode(std::vector<Node::Ptr> items) : m_items(items) {}
@@ -203,6 +206,8 @@ public:
     }
     
     std::vector<Node::Ptr> get_items() const { return m_items; }
+    
+    Ptr add_to_symtab_forward(SymbolTable &st) override;
     
 private:
     std::vector<Node::Ptr> m_items;
@@ -274,6 +279,9 @@ public:
         result += "])";
         return result;
     }
+
+    bool is_class() const override { return true; }
+    Ptr add_to_symtab_forward(SymbolTable &st) override;
     
 private:
     Node::Ptr m_name;
@@ -282,4 +290,4 @@ private:
 
 }
 
-#endif
+#endif // KIRAZ_AST_STATEMENT_H

@@ -20,6 +20,9 @@ public:
     std::string as_string() const override {
         return fmt::format("Id({})", m_name);
     }
+    const std::string& get_name() const { return m_name; }
+    SymTabEntry get_symbol(const SymbolTable &st) const override;
+    Ptr compute_stmt_type(SymbolTable &st) override;
 private:
     std::string m_name;
 };
