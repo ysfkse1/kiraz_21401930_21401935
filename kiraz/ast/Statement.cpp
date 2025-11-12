@@ -27,4 +27,118 @@ Node::Ptr Let::add_to_symtab_ordered(SymbolTable &st) {
     return nullptr;
 }
 
+Node::Ptr Func::compute_stmt_type(SymbolTable &st) {
+    Node::compute_stmt_type(st);
+    
+    auto scope = st.enter_scope(ScopeType::Func, shared_from_this());
+    
+    for (auto &stmt : m_stmts) {
+        auto err = stmt->add_to_symtab_ordered(st);
+        if (err) return err;
+    }
+    
+    for (auto &stmt : m_stmts) {
+        auto err = stmt->compute_stmt_type(st);
+        if (err) return err;
+    }
+    
+    return nullptr;
+}
+
+Node::Ptr Class::compute_stmt_type(SymbolTable &st) {
+    Node::compute_stmt_type(st);
+    
+    auto scope = st.enter_scope(ScopeType::Class, shared_from_this());
+    
+    for (auto &stmt : m_stmts) {
+        auto err = stmt->add_to_symtab_ordered(st);
+        if (err) return err;
+    }
+    
+    for (auto &stmt : m_stmts) {
+        auto err = stmt->compute_stmt_type(st);
+        if (err) return err;
+    }
+    
+    return nullptr;
+}
+
+Node::Ptr While::compute_stmt_type(SymbolTable &st) {
+    Node::compute_stmt_type(st);
+    
+    auto scope_type = st.get_scope_type();
+    if (scope_type == ScopeType::Module || scope_type == ScopeType::Class) {
+        set_error("while statement is misplaced");
+        return shared_from_this();
+    }
+    
+    auto err = m_condition->compute_stmt_type(st);
+    if (err) return err;
+    
+    for (auto &stmt : m_stmts) {
+        err = stmt->compute_stmt_type(st);
+        if (err) return err;
+    }
+    
+    return nullptr;
+}
+
+Node::Ptr If::compute_stmt_type(SymbolTable &st) {
+    Node::compute_stmt_type(st);
+    
+    auto scope_type = st.get_scope_type();
+    if (scope_type == ScopeType::Module || scope_type == ScopeType::Class) {
+        set_error("if statement is misplaced");
+        return shared_from_this();
+    }
+    
+    auto err = m_condition->compute_stmt_type(st);
+    if (err) return err;
+    
+    for (auto &stmt : m_then_stmts) {
+        err = stmt->compute_stmt_type(st);
+        if (err) return err;
+    }
+    
+    if (m_else_part) {
+        err = m_else_part->compute_stmt_type(st);
+        if (err) return err;
+    }
+    
+    return nullptr;
+}
+
+Node::Ptr Return::compute_stmt_type(SymbolTable &st) {
+    Node::compute_stmt_type(st);
+    
+    auto scope_type = st.get_scope_type();
+    if (scope_type == ScopeType::Module || scope_type == ScopeType::Class) {
+        set_error("return statement is misplaced");
+        return shared_from_this();
+    }
+    
+    auto err = m_expr->compute_stmt_type(st);
+    if (err) return err;
+    
+    return nullptr;
+}
+
+Node::Ptr Assign::compute_stmt_type(SymbolTable &st) {
+    Node::compute_stmt_type(st);
+    
+    auto scope_type = st.get_scope_type();
+    if (scope_type == ScopeType::Module || scope_type == ScopeType::Class) {
+        set_error("assignment is misplaced");
+        return shared_from_this();
+    }
+    
+    auto err = m_left->compute_stmt_type(st);
+    if (err) return err;
+    
+    err = m_right->compute_stmt_type(st);
+    if (err) return err;
+    
+    return nullptr;
+}
+
 }

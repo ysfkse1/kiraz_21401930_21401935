@@ -41,6 +41,7 @@ public:
     std::string as_string() const override {
         return fmt::format("Assign(l={}, r={})", m_left->as_string(), m_right->as_string());
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
     
 private:
     Node::Ptr m_left;
@@ -107,6 +108,7 @@ public:
 
     bool is_func() const override { return true; }
     Ptr add_to_symtab_forward(SymbolTable &st) override;
+    Ptr compute_stmt_type(SymbolTable &st) override;
     
 private:
     Node::Ptr m_name;
@@ -141,6 +143,7 @@ public:
         result += ")";
         return result;
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
     
 private:
     Node::Ptr m_condition;
@@ -185,6 +188,7 @@ public:
         result += "])";
         return result;
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
     
 private:
     Node::Ptr m_condition;
@@ -220,6 +224,7 @@ public:
     std::string as_string() const override {
         return fmt::format("Return({})", m_expr->as_string());
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
     
 private:
     Node::Ptr m_expr;
@@ -282,6 +287,7 @@ public:
 
     bool is_class() const override { return true; }
     Ptr add_to_symtab_forward(SymbolTable &st) override;
+    Ptr compute_stmt_type(SymbolTable &st) override;
     
 private:
     Node::Ptr m_name;

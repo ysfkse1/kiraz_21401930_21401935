@@ -13,6 +13,7 @@ public:
     std::string as_string() const override {
         return fmt::format("Add(l={}, r={})", m_left->as_string(), m_right->as_string());
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
 private:
     Node::Ptr m_left;
     Node::Ptr m_right;
@@ -24,6 +25,7 @@ public:
     std::string as_string() const override {
         return fmt::format("Sub(l={}, r={})", m_left->as_string(), m_right->as_string());
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
 private:
     Node::Ptr m_left;
     Node::Ptr m_right;
@@ -35,6 +37,7 @@ public:
     std::string as_string() const override {
         return fmt::format("Mult(l={}, r={})", m_left->as_string(), m_right->as_string());
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
 private:
     Node::Ptr m_left;
     Node::Ptr m_right;
@@ -46,6 +49,7 @@ public:
     std::string as_string() const override {
         return fmt::format("DivF(l={}, r={})", m_left->as_string(), m_right->as_string());
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
 private:
     Node::Ptr m_left;
     Node::Ptr m_right;
@@ -57,6 +61,7 @@ public:
     std::string as_string() const override {
         return fmt::format("OpEq(l={}, r={})", m_left->as_string(), m_right->as_string());
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
 private:
     Node::Ptr m_left;
     Node::Ptr m_right;
@@ -68,6 +73,7 @@ public:
     std::string as_string() const override {
         return fmt::format("OpGt(l={}, r={})", m_left->as_string(), m_right->as_string());
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
 private:
     Node::Ptr m_left;
     Node::Ptr m_right;
@@ -79,6 +85,7 @@ public:
     std::string as_string() const override {
         return fmt::format("OpGe(l={}, r={})", m_left->as_string(), m_right->as_string());
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
 private:
     Node::Ptr m_left;
     Node::Ptr m_right;
@@ -90,6 +97,7 @@ public:
     std::string as_string() const override {
         return fmt::format("OpLt(l={}, r={})", m_left->as_string(), m_right->as_string());
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
 private:
     Node::Ptr m_left;
     Node::Ptr m_right;
@@ -101,6 +109,7 @@ public:
     std::string as_string() const override {
         return fmt::format("OpLe(l={}, r={})", m_left->as_string(), m_right->as_string());
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
 private:
     Node::Ptr m_left;
     Node::Ptr m_right;
