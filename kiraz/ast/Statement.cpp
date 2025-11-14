@@ -22,6 +22,14 @@ Node::Ptr ListNode::add_to_symtab_forward(SymbolTable &st) {
     return nullptr;
 }
 
+Node::Ptr ListNode::compute_stmt_type(SymbolTable &st) {
+    for (auto &item : m_items) {
+        auto err = item->compute_stmt_type(st);
+        if (err) return err;
+    }
+    return nullptr;
+}
+
 Node::Ptr Let::add_to_symtab_ordered(SymbolTable &st) {
     st.add_symbol(dynamic_cast<Id*>(m_name.get())->get_name(), shared_from_this());
     return nullptr;

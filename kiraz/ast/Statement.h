@@ -212,6 +212,7 @@ public:
     std::vector<Node::Ptr> get_items() const { return m_items; }
     
     Ptr add_to_symtab_forward(SymbolTable &st) override;
+    Ptr compute_stmt_type(SymbolTable &st) override;
     
 private:
     std::vector<Node::Ptr> m_items;
