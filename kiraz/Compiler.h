@@ -1,6 +1,8 @@
 
 #include <cassert>
 #include <map>
+#include <set>
+#include <string>
 
 #include <kiraz/Node.h>
 
@@ -82,6 +84,22 @@ public:
     auto get_cur_symtab() const { return m_symbols.back(); }
     auto get_scope_type() const { return m_symbols.back()->scope_type; }
     auto get_scope_stmt() const { return m_symbols.back()->stmt; }
+
+    bool is_builtin(const std::string &name) const {
+        static const std::set<std::string> builtins = {
+            "Boolean", "Integer64", "String", "Module", "Class", "Function", "Null",
+            "null", "and", "or", "not"
+        };
+        return builtins.find(name) != builtins.end();
+    }
+
+    // Check if symbol exists in any parent scope (not just current)
+    bool has_symbol_in_parent(const std::string &name) const {
+        if (m_symbols.size() < 2) return false;
+        // Check the scope before current (parent scope)
+        auto parent_scope = m_symbols[m_symbols.size() - 2];
+        return parent_scope->find(name) != parent_scope->end();
+    }
 
     static auto get_module_io() { return s_module_io; }
 
