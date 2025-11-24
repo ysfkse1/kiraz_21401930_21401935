@@ -57,6 +57,9 @@ public:
         return fmt::format("FArg(n={}, t={})", m_name->as_string(), m_type->as_string());
     }
     
+    Node::Ptr get_name() const { return m_name; }
+    Node::Ptr get_type() const { return m_type; }
+    
 private:
     Node::Ptr m_name;
     Node::Ptr m_type;
@@ -76,6 +79,8 @@ public:
         result += "])";
         return result;
     }
+    
+    const std::vector<Node::Ptr>& get_args() const { return m_args; }
     
 private:
     std::vector<Node::Ptr> m_args;
@@ -109,6 +114,10 @@ public:
     bool is_func() const override { return true; }
     Ptr add_to_symtab_forward(SymbolTable &st) override;
     Ptr compute_stmt_type(SymbolTable &st) override;
+    
+    Node::Ptr get_name() const { return m_name; }
+    Node::Ptr get_args() const { return m_args; }
+    Node::Ptr get_ret_type() const { return m_ret_type; }
     
 private:
     Node::Ptr m_name;

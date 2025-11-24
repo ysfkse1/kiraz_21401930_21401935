@@ -68,6 +68,54 @@ Node::Ptr Let::add_to_symtab_ordered(SymbolTable &st) {
 Node::Ptr Func::compute_stmt_type(SymbolTable &st) {
     Node::compute_stmt_type(st);
     
+    auto func_name = dynamic_cast<Id*>(m_name.get())->get_name();
+    
+    auto ret_type_id = dynamic_cast<Id*>(m_ret_type.get());
+    if (ret_type_id) {
+        auto ret_type_name = ret_type_id->get_name();
+        auto ret_type_entry = st.get_symbol(ret_type_name);
+        if (!ret_type_entry) {
+            set_error(fmt::format("Return type '{}' of function '{}' is not found", 
+                                ret_type_name, func_name));
+            return shared_from_this();
+        }
+    }
+    
+    if (m_args) {
+        auto func_args = dynamic_cast<FuncArgs*>(m_args.get());
+        if (func_args) {
+            std::set<std::string> arg_names;
+            arg_names.insert(func_name);
+            
+            for (auto &arg : func_args->get_args()) {
+                auto farg = dynamic_cast<FArg*>(arg.get());
+                if (farg) {
+                    auto arg_name_id = dynamic_cast<Id*>(farg->get_name().get());
+                    auto arg_type_id = dynamic_cast<Id*>(farg->get_type().get());
+                    
+                    if (arg_name_id && arg_type_id) {
+                        auto arg_name = arg_name_id->get_name();
+                        auto arg_type_name = arg_type_id->get_name();
+                        
+                        if (arg_names.find(arg_name) != arg_names.end()) {
+                            set_error(fmt::format("Identifier '{}' in argument list of function '{}' is already in symtab", 
+                                                arg_name, func_name));
+                            return shared_from_this();
+                        }
+                        arg_names.insert(arg_name);
+                        
+                        auto arg_type_entry = st.get_symbol(arg_type_name);
+                        if (!arg_type_entry) {
+                            set_error(fmt::format("Identifier '{}' in type of argument '{}' in function '{}' is not found", 
+                                                arg_type_name, arg_name, func_name));
+                            return shared_from_this();
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     auto scope = st.enter_scope(ScopeType::Func, shared_from_this());
     
     for (auto &stmt : m_stmts) {
