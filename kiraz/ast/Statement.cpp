@@ -1,9 +1,9 @@
 #include "Statement.h"
 #include "Literal.h"
 #include <kiraz/Compiler.h>
-
+ 
 namespace ast {
-
+ 
 Node::Ptr Func::add_to_symtab_forward(SymbolTable &st) {
     auto name = dynamic_cast<Id*>(m_name.get())->get_name();
     
@@ -17,7 +17,7 @@ Node::Ptr Func::add_to_symtab_forward(SymbolTable &st) {
     st.add_symbol(name, shared_from_this());
     return nullptr;
 }
-
+ 
 Node::Ptr Class::add_to_symtab_forward(SymbolTable &st) {
     auto name = dynamic_cast<Id*>(m_name.get())->get_name();
     
@@ -31,7 +31,7 @@ Node::Ptr Class::add_to_symtab_forward(SymbolTable &st) {
     st.add_symbol(name, shared_from_this());
     return nullptr;
 }
-
+ 
 Node::Ptr ListNode::add_to_symtab_forward(SymbolTable &st) {
     for (auto &item : m_items) {
         auto err = item->add_to_symtab_forward(st);
@@ -39,7 +39,7 @@ Node::Ptr ListNode::add_to_symtab_forward(SymbolTable &st) {
     }
     return nullptr;
 }
-
+ 
 Node::Ptr ListNode::compute_stmt_type(SymbolTable &st) {
     for (auto &item : m_items) {
         auto err = item->compute_stmt_type(st);
@@ -47,7 +47,7 @@ Node::Ptr ListNode::compute_stmt_type(SymbolTable &st) {
     }
     return nullptr;
 }
-
+ 
 Node::Ptr Let::add_to_symtab_ordered(SymbolTable &st) {
     auto name = dynamic_cast<Id*>(m_name.get())->get_name();
     
@@ -56,9 +56,7 @@ Node::Ptr Let::add_to_symtab_ordered(SymbolTable &st) {
         return shared_from_this();
     }
     
-    // Check if symbol already exists in current scope
-    auto existing = st.get_symbol(name);
-    if (existing) {
+    if (st.is_locally_defined(name) || st.has_symbol_in_parent(name)) {
         set_error(fmt::format("Identifier '{}' is already in symtab", name));
         return shared_from_this();
     }
@@ -66,7 +64,7 @@ Node::Ptr Let::add_to_symtab_ordered(SymbolTable &st) {
     st.add_symbol(name, shared_from_this());
     return nullptr;
 }
-
+ 
 Node::Ptr Func::compute_stmt_type(SymbolTable &st) {
     Node::compute_stmt_type(st);
     
@@ -84,7 +82,7 @@ Node::Ptr Func::compute_stmt_type(SymbolTable &st) {
     
     return nullptr;
 }
-
+ 
 Node::Ptr Class::compute_stmt_type(SymbolTable &st) {
     Node::compute_stmt_type(st);
     
@@ -110,7 +108,7 @@ Node::Ptr Class::compute_stmt_type(SymbolTable &st) {
     
     return nullptr;
 }
-
+ 
 Node::Ptr While::compute_stmt_type(SymbolTable &st) {
     Node::compute_stmt_type(st);
     
@@ -130,7 +128,7 @@ Node::Ptr While::compute_stmt_type(SymbolTable &st) {
     
     return nullptr;
 }
-
+ 
 Node::Ptr If::compute_stmt_type(SymbolTable &st) {
     Node::compute_stmt_type(st);
     
@@ -155,7 +153,7 @@ Node::Ptr If::compute_stmt_type(SymbolTable &st) {
     
     return nullptr;
 }
-
+ 
 Node::Ptr Return::compute_stmt_type(SymbolTable &st) {
     Node::compute_stmt_type(st);
     
@@ -170,7 +168,7 @@ Node::Ptr Return::compute_stmt_type(SymbolTable &st) {
     
     return nullptr;
 }
-
+ 
 Node::Ptr Assign::compute_stmt_type(SymbolTable &st) {
     Node::compute_stmt_type(st);
     
@@ -197,5 +195,5 @@ Node::Ptr Assign::compute_stmt_type(SymbolTable &st) {
     
     return nullptr;
 }
-
+ 
 }
