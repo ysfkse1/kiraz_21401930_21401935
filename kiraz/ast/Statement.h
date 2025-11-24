@@ -1,13 +1,13 @@
 #ifndef KIRAZ_AST_STATEMENT_H
 #define KIRAZ_AST_STATEMENT_H
-
+ 
 #include <kiraz/Node.h>
-
+ 
 namespace ast {
-
+ 
 class Let : public Node {
 public:
-    Let(Node::Ptr name, Node::Ptr type, Node::Ptr init) 
+    Let(Node::Ptr name, Node::Ptr type, Node::Ptr init)
         : m_name(name), m_type(type), m_init(init) {}
     
     std::string as_string() const override {
@@ -24,7 +24,7 @@ public:
         result += ")";
         return result;
     }
-
+ 
     Ptr add_to_symtab_ordered(SymbolTable &st) override;
     
 private:
@@ -32,10 +32,10 @@ private:
     Node::Ptr m_type;
     Node::Ptr m_init;
 };
-
+ 
 class Assign : public Node {
 public:
-    Assign(Node::Ptr left, Node::Ptr right) 
+    Assign(Node::Ptr left, Node::Ptr right)
         : m_left(left), m_right(right) {}
     
     std::string as_string() const override {
@@ -47,10 +47,10 @@ private:
     Node::Ptr m_left;
     Node::Ptr m_right;
 };
-
+ 
 class FArg : public Node {
 public:
-    FArg(Node::Ptr name, Node::Ptr type) 
+    FArg(Node::Ptr name, Node::Ptr type)
         : m_name(name), m_type(type) {}
     
     std::string as_string() const override {
@@ -64,10 +64,10 @@ private:
     Node::Ptr m_name;
     Node::Ptr m_type;
 };
-
+ 
 class FuncArgs : public Node {
 public:
-    FuncArgs(std::vector<Node::Ptr> args) 
+    FuncArgs(std::vector<Node::Ptr> args)
         : m_args(args) {}
     
     std::string as_string() const override {
@@ -85,10 +85,10 @@ public:
 private:
     std::vector<Node::Ptr> m_args;
 };
-
+ 
 class Func : public Node {
 public:
-    Func(Node::Ptr name, Node::Ptr args, Node::Ptr ret_type, std::vector<Node::Ptr> stmts) 
+    Func(Node::Ptr name, Node::Ptr args, Node::Ptr ret_type, std::vector<Node::Ptr> stmts)
         : m_name(name), m_args(args), m_ret_type(ret_type), m_stmts(stmts) {}
     
     std::string as_string() const override {
@@ -110,7 +110,7 @@ public:
         result += "])";
         return result;
     }
-
+ 
     bool is_func() const override { return true; }
     Ptr add_to_symtab_forward(SymbolTable &st) override;
     Ptr compute_stmt_type(SymbolTable &st) override;
@@ -125,10 +125,10 @@ private:
     Node::Ptr m_ret_type;
     std::vector<Node::Ptr> m_stmts;
 };
-
+ 
 class If : public Node {
 public:
-    If(Node::Ptr condition, std::vector<Node::Ptr> then_stmts, Node::Ptr else_part) 
+    If(Node::Ptr condition, std::vector<Node::Ptr> then_stmts, Node::Ptr else_part)
         : m_condition(condition), m_then_stmts(then_stmts), m_else_part(else_part) {}
     
     std::string as_string() const override {
@@ -157,12 +157,12 @@ public:
 private:
     Node::Ptr m_condition;
     std::vector<Node::Ptr> m_then_stmts;
-    Node::Ptr m_else_part; 
+    Node::Ptr m_else_part;
 };
-
+ 
 class ElseBlock : public Node {
 public:
-    ElseBlock(std::vector<Node::Ptr> stmts) 
+    ElseBlock(std::vector<Node::Ptr> stmts)
         : m_stmts(stmts) {}
     
     std::string as_string() const override {
@@ -178,10 +178,10 @@ public:
 private:
     std::vector<Node::Ptr> m_stmts;
 };
-
+ 
 class While : public Node {
 public:
-    While(Node::Ptr condition, std::vector<Node::Ptr> stmts) 
+    While(Node::Ptr condition, std::vector<Node::Ptr> stmts)
         : m_condition(condition), m_stmts(stmts) {}
     
     std::string as_string() const override {
@@ -203,7 +203,7 @@ private:
     Node::Ptr m_condition;
     std::vector<Node::Ptr> m_stmts;
 };
-
+ 
 class ListNode : public Node {
 public:
     ListNode(std::vector<Node::Ptr> items) : m_items(items) {}
@@ -226,7 +226,7 @@ public:
 private:
     std::vector<Node::Ptr> m_items;
 };
-
+ 
 class Return : public Node {
 public:
     Return(Node::Ptr expr) : m_expr(expr) {}
@@ -236,10 +236,12 @@ public:
     }
     Ptr compute_stmt_type(SymbolTable &st) override;
     
+    Node::Ptr get_expr() const { return m_expr; }
+    
 private:
     Node::Ptr m_expr;
 };
-
+ 
 class Import : public Node {
 public:
     Import(Node::Ptr path) : m_path(path) {}
@@ -251,10 +253,10 @@ public:
 private:
     Node::Ptr m_path;
 };
-
+ 
 class Call : public Node {
 public:
-    Call(Node::Ptr name, Node::Ptr args) 
+    Call(Node::Ptr name, Node::Ptr args)
         : m_name(name), m_args(args) {}
     
     std::string as_string() const override {
@@ -265,10 +267,10 @@ private:
     Node::Ptr m_name;
     Node::Ptr m_args;
 };
-
+ 
 class Dot : public Node {
 public:
-    Dot(Node::Ptr left, Node::Ptr right) 
+    Dot(Node::Ptr left, Node::Ptr right)
         : m_left(left), m_right(right) {}
     
     std::string as_string() const override {
@@ -279,7 +281,7 @@ private:
     Node::Ptr m_left;
     Node::Ptr m_right;
 };
-
+ 
 class Class : public Node {
 public:
     Class(Node::Ptr name, std::vector<Node::Ptr> stmts)
@@ -294,7 +296,7 @@ public:
         result += "])";
         return result;
     }
-
+ 
     bool is_class() const override { return true; }
     Ptr add_to_symtab_forward(SymbolTable &st) override;
     Ptr compute_stmt_type(SymbolTable &st) override;
@@ -303,7 +305,7 @@ private:
     Node::Ptr m_name;
     std::vector<Node::Ptr> m_stmts;
 };
-
+ 
 }
-
+ 
 #endif // KIRAZ_AST_STATEMENT_H

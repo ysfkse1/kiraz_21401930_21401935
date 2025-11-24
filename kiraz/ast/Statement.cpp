@@ -21,6 +21,10 @@ Node::Ptr Func::add_to_symtab_forward(SymbolTable &st) {
 Node::Ptr Class::add_to_symtab_forward(SymbolTable &st) {
     auto name = dynamic_cast<Id*>(m_name.get())->get_name();
     
+    if (!name.empty() && std::islower(name[0])) {
+        set_error(fmt::format("Class name '{}' can not start with an lowercase letter", name));
+        return shared_from_this();
+    }
     
     auto existing = st.get_symbol(name);
     if (existing) {
@@ -75,7 +79,7 @@ Node::Ptr Func::compute_stmt_type(SymbolTable &st) {
         auto ret_type_name = ret_type_id->get_name();
         auto ret_type_entry = st.get_symbol(ret_type_name);
         if (!ret_type_entry) {
-            set_error(fmt::format("Return type '{}' of function '{}' is not found", 
+            set_error(fmt::format("Return type '{}' of function '{}' is not found",
                                 ret_type_name, func_name));
             return shared_from_this();
         }
@@ -98,7 +102,7 @@ Node::Ptr Func::compute_stmt_type(SymbolTable &st) {
                         auto arg_type_name = arg_type_id->get_name();
                         
                         if (arg_names.find(arg_name) != arg_names.end()) {
-                            set_error(fmt::format("Identifier '{}' in argument list of function '{}' is already in symtab", 
+                            set_error(fmt::format("Identifier '{}' in argument list of function '{}' is already in symtab",
                                                 arg_name, func_name));
                             return shared_from_this();
                         }
@@ -106,7 +110,7 @@ Node::Ptr Func::compute_stmt_type(SymbolTable &st) {
                         
                         auto arg_type_entry = st.get_symbol(arg_type_name);
                         if (!arg_type_entry) {
-                            set_error(fmt::format("Identifier '{}' in type of argument '{}' in function '{}' is not found", 
+                            set_error(fmt::format("Identifier '{}' in type of argument '{}' in function '{}' is not found",
                                                 arg_type_name, arg_name, func_name));
                             return shared_from_this();
                         }
@@ -126,6 +130,23 @@ Node::Ptr Func::compute_stmt_type(SymbolTable &st) {
     for (auto &stmt : m_stmts) {
         auto err = stmt->compute_stmt_type(st);
         if (err) return err;
+    }
+    
+    if (ret_type_id) {
+        auto ret_type_name = ret_type_id->get_name();
+        if (ret_type_name != "Null") {
+            bool has_return = false;
+            for (auto &stmt : m_stmts) {
+                if (dynamic_cast<Return*>(stmt.get())) {
+                    has_return = true;
+                    break;
+                }
+            }
+            if (!has_return) {
+                set_error("Function is missing return value");
+                return shared_from_this();
+            }
+        }
     }
     
     return nullptr;
@@ -213,6 +234,30 @@ Node::Ptr Return::compute_stmt_type(SymbolTable &st) {
     
     auto err = m_expr->compute_stmt_type(st);
     if (err) return err;
+    
+    auto func_stmt = st.get_scope_stmt();
+    auto func = dynamic_cast<Func*>(func_stmt.get());
+    if (func) {
+        auto ret_type_id = dynamic_cast<Id*>(func->get_ret_type().get());
+        if (ret_type_id) {
+            auto expected_type = ret_type_id->get_name();
+            std::string actual_type;
+            
+            if (auto int_lit = dynamic_cast<Integer*>(m_expr.get())) {
+                actual_type = "Integer64";
+            } else if (auto str_lit = dynamic_cast<Str*>(m_expr.get())) {
+                actual_type = "String";
+            } else if (auto id = dynamic_cast<Id*>(m_expr.get())) {
+                actual_type = "Unknown";
+            }
+            
+            if (!actual_type.empty() && actual_type != expected_type && actual_type != "Unknown") {
+                set_error(fmt::format("Return statement type '{}' does not match function return type '{}'",
+                                    actual_type, expected_type));
+                return shared_from_this();
+            }
+        }
+    }
     
     return nullptr;
 }

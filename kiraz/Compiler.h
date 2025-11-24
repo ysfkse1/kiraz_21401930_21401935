@@ -1,4 +1,4 @@
-
+ 
 #include <cassert>
 #include <map>
 #include <set>
@@ -103,7 +103,7 @@ public:
     bool has_symbol_in_parent(const std::string &name) const {
         if (m_symbols.size() < 2) return false;
         auto parent_scope = m_symbols[m_symbols.size() - 2];
-        return parent_scope->find(name) != parent_scope->end();
+        return parent_scope->locally_defined.find(name) != parent_scope->locally_defined.end();
     }
  
     static auto get_module_io() { return s_module_io; }
