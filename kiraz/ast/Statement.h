@@ -27,6 +27,10 @@ public:
  
     Ptr add_to_symtab_ordered(SymbolTable &st) override;
     
+    Node::Ptr get_name() const { return m_name; }
+    Node::Ptr get_type() const { return m_type; }
+    Node::Ptr get_init() const { return m_init; }
+    
 private:
     Node::Ptr m_name;
     Node::Ptr m_type;
@@ -263,6 +267,11 @@ public:
         return fmt::format("Call(n={}, a={})", m_name->as_string(), m_args->as_string());
     }
     
+    Ptr compute_stmt_type(SymbolTable &st) override;
+    
+    Node::Ptr get_name() const { return m_name; }
+    Node::Ptr get_args() const { return m_args; }
+    
 private:
     Node::Ptr m_name;
     Node::Ptr m_args;
@@ -277,6 +286,11 @@ public:
         return fmt::format("Dot(l={}, r={})", m_left->as_string(), m_right->as_string());
     }
     
+    Ptr compute_stmt_type(SymbolTable &st) override;
+    
+    Node::Ptr get_left() const { return m_left; }
+    Node::Ptr get_right() const { return m_right; }
+    
 private:
     Node::Ptr m_left;
     Node::Ptr m_right;
@@ -284,11 +298,15 @@ private:
  
 class Class : public Node {
 public:
-    Class(Node::Ptr name, std::vector<Node::Ptr> stmts)
-        : m_name(name), m_stmts(stmts) {}
+    Class(Node::Ptr name, std::vector<Node::Ptr> stmts, Node::Ptr parent = nullptr)
+        : m_name(name), m_stmts(stmts), m_parent(parent) {}
     
     std::string as_string() const override {
-        std::string result = "Class(n=" + m_name->as_string() + ", s=[";
+        std::string result = "Class(n=" + m_name->as_string();
+        if (m_parent) {
+            result += ", p=" + m_parent->as_string();
+        }
+        result += ", s=[";
         for (size_t i = 0; i < m_stmts.size(); i++) {
             if (i > 0) result += ", ";
             result += m_stmts[i]->as_string();
@@ -300,10 +318,16 @@ public:
     bool is_class() const override { return true; }
     Ptr add_to_symtab_forward(SymbolTable &st) override;
     Ptr compute_stmt_type(SymbolTable &st) override;
+    SymTabEntry get_subsymbol(Ptr subsymbol) const override;
+    const SymbolTable *get_subsymbol_all() const override;
+    
+    Node::Ptr get_name() const { return m_name; }
+    Node::Ptr get_parent_class() const { return m_parent; }
     
 private:
     Node::Ptr m_name;
     std::vector<Node::Ptr> m_stmts;
+    Node::Ptr m_parent;
 };
  
 }

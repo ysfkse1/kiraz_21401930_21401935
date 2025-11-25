@@ -61,7 +61,7 @@ stmt_list_top: stmt {
 
 stmt: expr OP_SCOLON { $$ = $1; }
     | let_stmt { $$ = $1; }
-    | identifier OP_ASSIGN expr OP_SCOLON { $$ = Node::add<ast::Assign>($1, $3); }
+    | expr OP_ASSIGN expr OP_SCOLON { $$ = Node::add<ast::Assign>($1, $3); }
     | func_stmt { $$ = $1; }
     | if_stmt { $$ = $1; }
     | while_stmt { $$ = $1; }
@@ -107,6 +107,14 @@ class_stmt: KW_CLASS identifier OP_LBRACE OP_RBRACE OP_SCOLON {
     | KW_CLASS identifier OP_LBRACE stmt_list_multi OP_RBRACE OP_SCOLON {
         auto list = std::dynamic_pointer_cast<ast::ListNode>($4);
         $$ = Node::add<ast::Class>($2, list->get_items());
+    }
+    | KW_CLASS identifier OP_COLON identifier OP_LBRACE OP_RBRACE OP_SCOLON {
+        std::vector<Node::Ptr> empty_stmts;
+        $$ = Node::add<ast::Class>($2, empty_stmts, $4);
+    }
+    | KW_CLASS identifier OP_COLON identifier OP_LBRACE stmt_list_multi OP_RBRACE OP_SCOLON {
+        auto list = std::dynamic_pointer_cast<ast::ListNode>($6);
+        $$ = Node::add<ast::Class>($2, list->get_items(), $4);
     }
     ;
 

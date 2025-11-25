@@ -60,7 +60,20 @@ Node::Ptr Let::add_to_symtab_ordered(SymbolTable &st) {
         return shared_from_this();
     }
     
-    if (st.is_locally_defined(name) || st.has_symbol_in_parent(name)) {
+    if (st.is_locally_defined(name)) {
+        set_error(fmt::format("Identifier '{}' is already in symtab", name));
+        return shared_from_this();
+    }
+    
+    auto scope_type = st.get_scope_type();
+    auto parent_scope_type = st.get_parent_scope_type();
+    
+    bool should_check_parent = 
+        (scope_type == ScopeType::Module) ||
+        (scope_type == ScopeType::Class) ||
+        (scope_type == ScopeType::Func && parent_scope_type == ScopeType::Class);
+    
+    if (should_check_parent && st.has_symbol_in_parent(name)) {
         set_error(fmt::format("Identifier '{}' is already in symtab", name));
         return shared_from_this();
     }
@@ -155,21 +168,45 @@ Node::Ptr Func::compute_stmt_type(SymbolTable &st) {
 Node::Ptr Class::compute_stmt_type(SymbolTable &st) {
     Node::compute_stmt_type(st);
     
+    Node::Ptr parent_class_node = nullptr;
+    if (m_parent) {
+        auto parent_id = dynamic_cast<Id*>(m_parent.get());
+        if (parent_id) {
+            auto parent_name = parent_id->get_name();
+            auto parent_entry = st.get_symbol(parent_name);
+            if (!parent_entry) {
+                set_error(fmt::format("Type '{}' is not found", parent_name));
+                return shared_from_this();
+            }
+            parent_class_node = const_cast<Node*>(parent_entry.stmt.get())->shared_from_this();
+        }
+    }
+    
     auto scope = st.enter_scope(ScopeType::Class, shared_from_this());
     
-    // Forward pass: add functions and classes first
+    m_cur_symtab = st.get_cur_symtab();
+    
+    if (parent_class_node) {
+        auto parent_class = dynamic_cast<Class*>(parent_class_node.get());
+        if (parent_class && parent_class->m_cur_symtab) {
+            for (auto& [name, symbol] : parent_class->m_cur_symtab->symbols) {
+                if (!st.is_builtin(name)) {
+                    st.add_symbol(name, symbol);
+                }
+            }
+        }
+    }
+    
     for (auto &stmt : m_stmts) {
         auto err = stmt->add_to_symtab_forward(st);
         if (err) return err;
     }
     
-    // Ordered pass: add variables and other statements
     for (auto &stmt : m_stmts) {
         auto err = stmt->add_to_symtab_ordered(st);
         if (err) return err;
     }
     
-    // Type checking pass
     for (auto &stmt : m_stmts) {
         auto err = stmt->compute_stmt_type(st);
         if (err) return err;
@@ -271,7 +308,6 @@ Node::Ptr Assign::compute_stmt_type(SymbolTable &st) {
         return shared_from_this();
     }
     
-    // Check if trying to override a builtin
     if (auto id = dynamic_cast<Id*>(m_left.get())) {
         auto name = id->get_name();
         if (st.is_builtin(name)) {
@@ -285,6 +321,99 @@ Node::Ptr Assign::compute_stmt_type(SymbolTable &st) {
     
     err = m_right->compute_stmt_type(st);
     if (err) return err;
+    
+    return nullptr;
+}
+
+Node::SymTabEntry Class::get_subsymbol(Node::Ptr subsymbol) const {
+    if (!m_cur_symtab) {
+        return {};
+    }
+    
+    auto id = dynamic_cast<Id*>(subsymbol.get());
+    if (!id) {
+        return {};
+    }
+    
+    auto name = id->get_name();
+    return m_cur_symtab->get_symbol(name);
+}
+
+const SymbolTable *Class::get_subsymbol_all() const {
+    return nullptr;
+}
+
+Node::Ptr Call::compute_stmt_type(SymbolTable &st) {
+    Node::compute_stmt_type(st);
+    
+    auto err = m_name->compute_stmt_type(st);
+    if (err) return err;
+    
+    err = m_args->compute_stmt_type(st);
+    if (err) return err;
+    
+    return nullptr;
+}
+
+Node::Ptr Dot::compute_stmt_type(SymbolTable &st) {
+    Node::compute_stmt_type(st);
+    
+    auto err = m_left->compute_stmt_type(st);
+    if (err) return err;
+    
+    auto left_id = dynamic_cast<Id*>(m_left.get());
+    if (!left_id) {
+        return nullptr;
+    }
+    
+    auto left_name = left_id->get_name();
+    auto left_entry = st.get_symbol(left_name);
+    
+    if (!left_entry) {
+        set_error(fmt::format("Identifier '{}' is not found", left_name));
+        return shared_from_this();
+    }
+    
+    auto left_let = dynamic_cast<const Let*>(left_entry.stmt.get());
+    Node::Ptr type_node = nullptr;
+    
+    if (left_let) {
+        auto type_id = dynamic_cast<Id*>(left_let->get_type().get());
+        if (!type_id) {
+            return nullptr;
+        }
+        
+        auto type_name = type_id->get_name();
+        auto type_entry = st.get_symbol(type_name);
+        
+        if (!type_entry) {
+            set_error(fmt::format("Type '{}' is not found", type_name));
+            return shared_from_this();
+        }
+        
+        type_node = const_cast<Node*>(type_entry.stmt.get())->shared_from_this();
+    } else {
+        type_node = const_cast<Node*>(left_entry.stmt.get())->shared_from_this();
+    }
+    
+    auto right_id = dynamic_cast<Id*>(m_right.get());
+    if (!right_id) {
+        return nullptr;
+    }
+    
+    auto right_name = right_id->get_name();
+    
+    if (st.is_builtin(right_name)) {
+        set_error(fmt::format("Identifier '{}' has no subsymbol '{}'", left_name, right_name));
+        return shared_from_this();
+    }
+    
+    auto subsymbol = type_node->get_subsymbol(m_right);
+    
+    if (!subsymbol) {
+        set_error(fmt::format("Identifier '{}.{}' is not found", left_name, right_name));
+        return shared_from_this();
+    }
     
     return nullptr;
 }

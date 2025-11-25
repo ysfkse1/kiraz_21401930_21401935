@@ -105,6 +105,11 @@ public:
         auto parent_scope = m_symbols[m_symbols.size() - 2];
         return parent_scope->locally_defined.find(name) != parent_scope->locally_defined.end();
     }
+    
+    ScopeType get_parent_scope_type() const {
+        if (m_symbols.size() < 2) return ScopeType::Module;
+        return m_symbols[m_symbols.size() - 2]->scope_type;
+    }
  
     static auto get_module_io() { return s_module_io; }
  
