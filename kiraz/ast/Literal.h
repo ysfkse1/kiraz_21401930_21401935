@@ -10,6 +10,7 @@ public:
     std::string as_string() const override {
         return fmt::format("Int({})", m_value);
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
 private:
     long long m_value;
 };
@@ -43,6 +44,7 @@ public:
     std::string as_string() const override {
         return fmt::format("Str({})", m_value);
     }
+    Ptr compute_stmt_type(SymbolTable &st) override;
 private:
     std::string m_value;
 };

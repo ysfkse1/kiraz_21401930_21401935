@@ -19,4 +19,16 @@ Node::Ptr Id::compute_stmt_type(SymbolTable &st) {
     return nullptr;
 }
 
+Node::Ptr Integer::compute_stmt_type(SymbolTable &st) {
+    Node::compute_stmt_type(st);
+    set_stmt_type(std::make_shared<Id>("Integer64"));
+    return nullptr;
+}
+
+Node::Ptr Str::compute_stmt_type(SymbolTable &st) {
+    Node::compute_stmt_type(st);
+    set_stmt_type(std::make_shared<Id>("String"));
+    return nullptr;
+}
+
 }

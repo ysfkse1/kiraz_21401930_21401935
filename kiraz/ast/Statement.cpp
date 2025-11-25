@@ -227,6 +227,18 @@ Node::Ptr While::compute_stmt_type(SymbolTable &st) {
     auto err = m_condition->compute_stmt_type(st);
     if (err) return err;
     
+    auto cond_type = m_condition->get_stmt_type();
+    if (cond_type) {
+        auto type_id = dynamic_cast<const Id*>(cond_type.get());
+        if (type_id) {
+            auto type_name = type_id->get_name();
+            if (type_name != "Boolean") {
+                set_error("While only accepts tests of type 'Boolean'");
+                return shared_from_this();
+            }
+        }
+    }
+    
     for (auto &stmt : m_stmts) {
         err = stmt->compute_stmt_type(st);
         if (err) return err;
@@ -246,6 +258,18 @@ Node::Ptr If::compute_stmt_type(SymbolTable &st) {
     
     auto err = m_condition->compute_stmt_type(st);
     if (err) return err;
+    
+    auto cond_type = m_condition->get_stmt_type();
+    if (cond_type) {
+        auto type_id = dynamic_cast<const Id*>(cond_type.get());
+        if (type_id) {
+            auto type_name = type_id->get_name();
+            if (type_name != "Boolean") {
+                set_error("If only accepts tests of type 'Boolean'");
+                return shared_from_this();
+            }
+        }
+    }
     
     for (auto &stmt : m_then_stmts) {
         err = stmt->compute_stmt_type(st);
