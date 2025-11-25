@@ -69,9 +69,8 @@ Node::Ptr Let::add_to_symtab_ordered(SymbolTable &st) {
     auto parent_scope_type = st.get_parent_scope_type();
     
     bool should_check_parent = 
-        (scope_type == ScopeType::Module) ||
         (scope_type == ScopeType::Class) ||
-        (scope_type == ScopeType::Func && parent_scope_type == ScopeType::Class);
+        (scope_type == ScopeType::Func && parent_scope_type != ScopeType::Func);
     
     if (should_check_parent && st.has_symbol_in_parent(name)) {
         set_error(fmt::format("Identifier '{}' is already in symtab", name));
@@ -81,7 +80,75 @@ Node::Ptr Let::add_to_symtab_ordered(SymbolTable &st) {
     st.add_symbol(name, shared_from_this());
     return nullptr;
 }
- 
+
+Node::Ptr Let::compute_stmt_type(SymbolTable &st) {
+    Node::compute_stmt_type(st);
+    
+    if (m_init) {
+        auto err = m_init->compute_stmt_type(st);
+        if (err) return err;
+    }
+    
+    if (m_type) {
+        set_stmt_type(m_type);
+        
+        if (m_init) {
+            auto init_type = m_init->get_stmt_type();
+            if (init_type) {
+                auto explicit_type_id = dynamic_cast<Id*>(m_type.get());
+                auto init_type_id = dynamic_cast<const Id*>(init_type.get());
+                
+                if (explicit_type_id && init_type_id) {
+                    auto explicit_name = explicit_type_id->get_name();
+                    auto init_name = init_type_id->get_name();
+                    
+                    if (explicit_name != init_name) {
+                        bool is_subclass = false;
+                        auto init_class_entry = st.get_symbol(init_name);
+                        if (init_class_entry) {
+                            auto init_class = dynamic_cast<const Class*>(init_class_entry.stmt.get());
+                            if (init_class) {
+                                auto parent = init_class->get_parent_class();
+                                while (parent) {
+                                    auto parent_id = dynamic_cast<Id*>(parent.get());
+                                    if (parent_id && parent_id->get_name() == explicit_name) {
+                                        is_subclass = true;
+                                        break;
+                                    }
+                                    auto parent_entry = st.get_symbol(parent_id->get_name());
+                                    if (parent_entry) {
+                                        auto parent_class = dynamic_cast<const Class*>(parent_entry.stmt.get());
+                                        if (parent_class) {
+                                            parent = parent_class->get_parent_class();
+                                        } else {
+                                            break;
+                                        }
+                                    } else {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (!is_subclass) {
+                            set_error(fmt::format("Initializer type '{}' does not match explicit type '{}'",
+                                                 init_name, explicit_name));
+                            return shared_from_this();
+                        }
+                    }
+                }
+            }
+        }
+    } else if (m_init) {
+        auto init_type = m_init->get_stmt_type();
+        if (init_type) {
+            set_stmt_type(init_type);
+        }
+    }
+    
+    return nullptr;
+}
+
 Node::Ptr Func::compute_stmt_type(SymbolTable &st) {
     Node::compute_stmt_type(st);
     
@@ -133,16 +200,18 @@ Node::Ptr Func::compute_stmt_type(SymbolTable &st) {
         }
     }
     
-    auto scope = st.enter_scope(ScopeType::Func, shared_from_this());
-    
-    for (auto &stmt : m_stmts) {
-        auto err = stmt->add_to_symtab_ordered(st);
-        if (err) return err;
-    }
-    
-    for (auto &stmt : m_stmts) {
-        auto err = stmt->compute_stmt_type(st);
-        if (err) return err;
+    {
+        auto scope = st.enter_scope(ScopeType::Func, shared_from_this());
+        
+        for (auto &stmt : m_stmts) {
+            auto err = stmt->add_to_symtab_ordered(st);
+            if (err) return err;
+        }
+        
+        for (auto &stmt : m_stmts) {
+            auto err = stmt->compute_stmt_type(st);
+            if (err) return err;
+        }
     }
     
     if (ret_type_id) {
@@ -346,6 +415,25 @@ Node::Ptr Assign::compute_stmt_type(SymbolTable &st) {
     err = m_right->compute_stmt_type(st);
     if (err) return err;
     
+    auto left_type = m_left->get_stmt_type();
+    auto right_type = m_right->get_stmt_type();
+    
+    if (left_type && right_type) {
+        auto left_type_id = dynamic_cast<const Id*>(left_type.get());
+        auto right_type_id = dynamic_cast<const Id*>(right_type.get());
+        
+        if (left_type_id && right_type_id) {
+            auto left_name = left_type_id->get_name();
+            auto right_name = right_type_id->get_name();
+            
+            if (left_name != right_name) {
+                set_error(fmt::format("Left type '{}' of assignment does not match the right type '{}'",
+                                     left_name, right_name));
+                return shared_from_this();
+            }
+        }
+    }
+    
     return nullptr;
 }
 
@@ -375,6 +463,22 @@ Node::Ptr Call::compute_stmt_type(SymbolTable &st) {
     
     err = m_args->compute_stmt_type(st);
     if (err) return err;
+    
+    auto name_id = dynamic_cast<Id*>(m_name.get());
+    if (name_id) {
+        auto func_name = name_id->get_name();
+        auto func_entry = st.get_symbol(func_name);
+        
+        if (func_entry) {
+            auto func_node = dynamic_cast<const Func*>(func_entry.stmt.get());
+            if (func_node) {
+                auto ret_type = func_node->get_ret_type();
+                if (ret_type) {
+                    set_stmt_type(ret_type);
+                }
+            }
+        }
+    }
     
     return nullptr;
 }

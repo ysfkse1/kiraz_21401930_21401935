@@ -26,6 +26,7 @@ public:
     }
  
     Ptr add_to_symtab_ordered(SymbolTable &st) override;
+    Ptr compute_stmt_type(SymbolTable &st) override;
     
     Node::Ptr get_name() const { return m_name; }
     Node::Ptr get_type() const { return m_type; }

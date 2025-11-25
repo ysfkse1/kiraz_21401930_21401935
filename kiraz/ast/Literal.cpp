@@ -16,6 +16,13 @@ Node::Ptr Id::compute_stmt_type(SymbolTable &st) {
         return shared_from_this();
     }
     
+    if (entry.stmt) {
+        auto entry_type = entry.stmt->get_stmt_type();
+        if (entry_type) {
+            set_stmt_type(entry_type);
+        }
+    }
+    
     return nullptr;
 }
 
