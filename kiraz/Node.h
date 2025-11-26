@@ -52,6 +52,7 @@ public:
 
     virtual bool is_func() const { return false; }
     virtual bool is_class() const { return false; }
+    virtual bool is_module() const { return false; }
     virtual bool is_funcarg_list() const { return false; }
     virtual void set_funcarg_list() { assert(false); }
 

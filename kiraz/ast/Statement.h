@@ -255,6 +255,10 @@ public:
         return fmt::format("Import({})", m_path->as_string());
     }
     
+    Ptr add_to_symtab_forward(SymbolTable &st) override;
+    
+    Node::Ptr get_path() const { return m_path; }
+    
 private:
     Node::Ptr m_path;
 };

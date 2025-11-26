@@ -3,6 +3,10 @@
 
 #include <kiraz/Node.h>
 #include <vector>
+#include <memory>
+
+class SymbolTable;
+struct Scope;
 
 namespace ast {
 
@@ -14,10 +18,14 @@ public:
         return fmt::format("Module({})", m_stmts);
     }
 
+    bool is_module() const override { return true; }
     Ptr compute_stmt_type(SymbolTable &st) override;
+    SymTabEntry get_subsymbol(Ptr subsymbol) const override;
+    const SymbolTable *get_subsymbol_all() const override;
     
 private:
     std::vector<Node::Ptr> m_stmts;
+    std::shared_ptr<Scope> m_cur_symtab;
 };
 
 }

@@ -1,6 +1,8 @@
 #include "Statement.h"
 #include "Literal.h"
+#include "Module.h"
 #include <kiraz/Compiler.h>
+#include <fstream>
  
 namespace ast {
  
@@ -255,6 +257,9 @@ Node::Ptr Class::compute_stmt_type(SymbolTable &st) {
     
     m_cur_symtab = st.get_cur_symtab();
     
+   
+    st.add_symbol("this", shared_from_this());
+    
     if (parent_class_node) {
         auto parent_class = dynamic_cast<Class*>(parent_class_node.get());
         if (parent_class && parent_class->m_cur_symtab) {
@@ -371,20 +376,19 @@ Node::Ptr Return::compute_stmt_type(SymbolTable &st) {
         auto ret_type_id = dynamic_cast<Id*>(func->get_ret_type().get());
         if (ret_type_id) {
             auto expected_type = ret_type_id->get_name();
-            std::string actual_type;
             
-            if (auto int_lit = dynamic_cast<Integer*>(m_expr.get())) {
-                actual_type = "Integer64";
-            } else if (auto str_lit = dynamic_cast<Str*>(m_expr.get())) {
-                actual_type = "String";
-            } else if (auto id = dynamic_cast<Id*>(m_expr.get())) {
-                actual_type = "Unknown";
-            }
-            
-            if (!actual_type.empty() && actual_type != expected_type && actual_type != "Unknown") {
-                set_error(fmt::format("Return statement type '{}' does not match function return type '{}'",
-                                    actual_type, expected_type));
-                return shared_from_this();
+            auto expr_type = m_expr->get_stmt_type();
+            if (expr_type) {
+                auto expr_type_id = dynamic_cast<const Id*>(expr_type.get());
+                if (expr_type_id) {
+                    auto actual_type = expr_type_id->get_name();
+                    
+                    if (actual_type != expected_type) {
+                        set_error(fmt::format("Return statement type '{}' does not match function return type '{}'",
+                                            actual_type, expected_type));
+                        return shared_from_this();
+                    }
+                }
             }
         }
     }
@@ -430,6 +434,14 @@ Node::Ptr Assign::compute_stmt_type(SymbolTable &st) {
                 set_error(fmt::format("Left type '{}' of assignment does not match the right type '{}'",
                                      left_name, right_name));
                 return shared_from_this();
+            }
+            
+            if (left_name == "Module" && right_name == "Module") {
+                auto left_id = dynamic_cast<Id*>(m_left.get());
+                if (left_id) {
+                    set_error(fmt::format("Overriding imported module '{}' is not allowed", left_id->get_name()));
+                    return shared_from_this();
+                }
             }
         }
     }
@@ -542,6 +554,59 @@ Node::Ptr Dot::compute_stmt_type(SymbolTable &st) {
         set_error(fmt::format("Identifier '{}.{}' is not found", left_name, right_name));
         return shared_from_this();
     }
+    
+    return nullptr;
+}
+
+Node::Ptr Import::add_to_symtab_forward(SymbolTable &st) {
+    auto path_id = dynamic_cast<Id*>(m_path.get());
+    if (!path_id) {
+        set_error("Import path must be an identifier");
+        return shared_from_this();
+    }
+    
+    auto module_name = path_id->get_name();
+    auto file_name = module_name + ".ki";
+    
+    std::ifstream file(file_name);
+    if (!file.is_open()) {
+        file_name = "../" + file_name;
+        file.open(file_name);
+    }
+    if (!file.is_open()) {
+        set_error(fmt::format("Cannot open module file '{}'", file_name));
+        return shared_from_this();
+    }
+    
+    std::string content((std::istreambuf_iterator<char>(file)),
+                        std::istreambuf_iterator<char>());
+    file.close();
+    
+    auto compiler = Compiler::current();
+    if (!compiler) {
+        set_error("No compiler instance available");
+        return shared_from_this();
+    }
+    
+    auto module_root = compiler->compile_module(content);
+    if (!module_root) {
+        set_error(fmt::format("Failed to parse module '{}'", module_name));
+        return shared_from_this();
+    }
+    
+    auto module = dynamic_cast<Module*>(module_root.get());
+    if (!module) {
+        set_error(fmt::format("Module '{}' is not a valid module", module_name));
+        return shared_from_this();
+    }
+    
+    auto err = module->compute_stmt_type(st);
+    if (err) {
+        set_error(fmt::format("Error in module '{}': {}", module_name, err->get_error()));
+        return shared_from_this();
+    }
+    
+    st.add_symbol(module_name, module_root);
     
     return nullptr;
 }

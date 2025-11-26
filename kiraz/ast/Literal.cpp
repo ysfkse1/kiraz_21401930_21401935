@@ -1,4 +1,5 @@
 #include "Literal.h"
+#include "Statement.h"
 #include <kiraz/Compiler.h>
 
 namespace ast {
@@ -14,6 +15,18 @@ Node::Ptr Id::compute_stmt_type(SymbolTable &st) {
     if (!entry) {
         set_error(fmt::format("Identifier '{}' is not found", m_name));
         return shared_from_this();
+    }
+    
+    if (m_name == "this" && entry.stmt && entry.stmt->is_class()) {
+        auto class_node = const_cast<Node*>(entry.stmt.get())->shared_from_this();
+        auto class_name_id = dynamic_cast<Class*>(class_node.get())->get_name();
+        set_stmt_type(class_name_id);
+        return nullptr;
+    }
+    
+    if (entry.stmt && entry.stmt->is_module()) {
+        set_stmt_type(std::make_shared<Id>("Module"));
+        return nullptr;
     }
     
     if (entry.stmt) {
