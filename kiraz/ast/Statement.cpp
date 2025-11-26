@@ -5,6 +5,17 @@
 #include <fstream>
  
 namespace ast {
+
+Node::Ptr FuncArgs::compute_stmt_type(SymbolTable &st) {
+    Node::compute_stmt_type(st);
+    
+    for (auto &arg : m_args) {
+        auto err = arg->compute_stmt_type(st);
+        if (err) return err;
+    }
+    
+    return nullptr;
+}
  
 Node::Ptr Func::add_to_symtab_forward(SymbolTable &st) {
     auto name = dynamic_cast<Id*>(m_name.get())->get_name();
@@ -476,17 +487,91 @@ Node::Ptr Call::compute_stmt_type(SymbolTable &st) {
     err = m_args->compute_stmt_type(st);
     if (err) return err;
     
-    auto name_id = dynamic_cast<Id*>(m_name.get());
-    if (name_id) {
-        auto func_name = name_id->get_name();
+    std::string func_name;
+    const Func *func_node = nullptr;
+    
+    if (auto name_id = dynamic_cast<Id*>(m_name.get())) {
+        func_name = name_id->get_name();
         auto func_entry = st.get_symbol(func_name);
         
         if (func_entry) {
-            auto func_node = dynamic_cast<const Func*>(func_entry.stmt.get());
-            if (func_node) {
-                auto ret_type = func_node->get_ret_type();
-                if (ret_type) {
-                    set_stmt_type(ret_type);
+            func_node = dynamic_cast<const Func*>(func_entry.stmt.get());
+        }
+    } else if (auto dot = dynamic_cast<Dot*>(m_name.get())) {
+        auto left_id = dynamic_cast<Id*>(dot->get_left().get());
+        auto right_id = dynamic_cast<Id*>(dot->get_right().get());
+        
+        if (left_id && right_id) {
+            auto module_name = left_id->get_name();
+            auto method_name = right_id->get_name();
+            func_name = module_name + "." + method_name;
+            
+            auto module_entry = st.get_symbol(module_name);
+            if (module_entry && module_entry.stmt) {
+                auto subsymbol = module_entry.stmt->get_subsymbol(dot->get_right());
+                if (subsymbol && subsymbol.stmt) {
+                    func_node = dynamic_cast<const Func*>(subsymbol.stmt.get());
+                }
+            }
+        }
+    }
+    
+    if (func_node) {
+        auto ret_type = func_node->get_ret_type();
+        if (ret_type) {
+            set_stmt_type(ret_type);
+        }
+        
+        auto func_args_node = func_node->get_args();
+        auto call_args_node = m_args.get();
+        
+        auto func_args = dynamic_cast<const FuncArgs*>(func_args_node.get());
+        auto call_args = dynamic_cast<const FuncArgs*>(call_args_node);
+        
+        size_t expected_count = 0;
+        if (func_args) {
+            expected_count = func_args->get_args().size();
+        }
+        
+        size_t actual_count = 0;
+        if (call_args) {
+            actual_count = call_args->get_args().size();
+        }
+        
+        if (expected_count != actual_count) {
+            set_error(fmt::format("Call to function '{}' has wrong number of arguments", func_name));
+            return shared_from_this();
+        }
+        
+        if (func_args && call_args && expected_count > 0) {
+            for (size_t i = 0; i < expected_count; i++) {
+                auto farg = dynamic_cast<const FArg*>(func_args->get_args()[i].get());
+                auto call_arg = call_args->get_args()[i];
+                
+                if (farg && call_arg) {
+                    auto expected_type_id = dynamic_cast<const Id*>(farg->get_type().get());
+                    auto actual_type = call_arg->get_stmt_type();
+                    
+                    if (expected_type_id && actual_type) {
+                        auto actual_type_id = dynamic_cast<const Id*>(actual_type.get());
+                        
+                        if (actual_type_id) {
+                            auto expected_type_name = expected_type_id->get_name();
+                            auto actual_type_name = actual_type_id->get_name();
+                            
+                            if (expected_type_name != actual_type_name) {
+                                bool is_module_call = func_name.find('.') != std::string::npos;
+                                bool is_builtin_type = (actual_type_name == "Integer64" || actual_type_name == "String" || actual_type_name == "Boolean");
+                                
+                                if (!(is_module_call && is_builtin_type)) {
+                                    set_error(fmt::format("Argument {} in call to function '{}' has type '{}'"
+                                                        " which does not match definition type '{}'",
+                                                        i + 1, func_name, actual_type_name, expected_type_name));
+                                    return shared_from_this();
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

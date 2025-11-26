@@ -85,6 +85,8 @@ public:
         return result;
     }
     
+    Ptr compute_stmt_type(SymbolTable &st) override;
+    
     const std::vector<Node::Ptr>& get_args() const { return m_args; }
     
 private:
@@ -333,6 +335,7 @@ private:
     Node::Ptr m_name;
     std::vector<Node::Ptr> m_stmts;
     Node::Ptr m_parent;
+    std::shared_ptr<Scope> m_cur_symtab;
 };
  
 }
