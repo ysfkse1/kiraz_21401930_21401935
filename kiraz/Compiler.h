@@ -106,6 +106,21 @@ public:
         return parent_scope->locally_defined.find(name) != parent_scope->locally_defined.end();
     }
     
+    Node::SymTabEntry get_symbol_in_parent(const std::string &name) const {
+        if (m_symbols.size() < 2) {
+            return {};
+        }
+        auto parent_scope = m_symbols[m_symbols.size() - 2];
+        if (parent_scope->locally_defined.find(name) == parent_scope->locally_defined.end()) {
+            return {};
+        }
+        auto iter = parent_scope->symbols.find(name);
+        if (iter == parent_scope->symbols.end()) {
+            return {};
+        }
+        return {name, iter->second};
+    }
+    
     ScopeType get_parent_scope_type() const {
         if (m_symbols.size() < 2) return ScopeType::Module;
         return m_symbols[m_symbols.size() - 2]->scope_type;

@@ -81,11 +81,31 @@ Node::Ptr Let::add_to_symtab_ordered(SymbolTable &st) {
     auto scope_type = st.get_scope_type();
     auto parent_scope_type = st.get_parent_scope_type();
     
-    bool should_check_parent = 
-        (scope_type == ScopeType::Class) ||
-        (scope_type == ScopeType::Func && parent_scope_type != ScopeType::Func);
+    bool has_parent_conflict = false;
+    if (scope_type == ScopeType::Class) {
+        has_parent_conflict = st.has_symbol_in_parent(name);
+    } else if (scope_type == ScopeType::Func && parent_scope_type != ScopeType::Func) {
+        if (parent_scope_type == ScopeType::Class) {
+            has_parent_conflict = st.has_symbol_in_parent(name);
+        } else {
+            auto parent_entry = st.get_symbol_in_parent(name);
+            if (parent_entry) {
+                auto scope_stmt = st.get_scope_stmt();
+                auto defined_stmt = parent_entry.stmt;
+                if (!scope_stmt || !defined_stmt) {
+                    has_parent_conflict = true;
+                } else {
+                    auto defined_before_scope =
+                            (defined_stmt->get_line() < scope_stmt->get_line()) ||
+                            (defined_stmt->get_line() == scope_stmt->get_line() &&
+                             defined_stmt->get_col() <= scope_stmt->get_col());
+                    has_parent_conflict = defined_before_scope;
+                }
+            }
+        }
+    }
     
-    if (should_check_parent && st.has_symbol_in_parent(name)) {
+    if (has_parent_conflict) {
         set_error(fmt::format("Identifier '{}' is already in symtab", name));
         return shared_from_this();
     }
