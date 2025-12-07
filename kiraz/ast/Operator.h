@@ -14,6 +14,7 @@ public:
         return fmt::format("Add(l={}, r={})", m_left->as_string(), m_right->as_string());
     }
     Ptr compute_stmt_type(SymbolTable &st) override;
+    Ptr gen_wat(WasmContext &ctx) override;
 private:
     Node::Ptr m_left;
     Node::Ptr m_right;
@@ -62,6 +63,7 @@ public:
         return fmt::format("OpEq(l={}, r={})", m_left->as_string(), m_right->as_string());
     }
     Ptr compute_stmt_type(SymbolTable &st) override;
+    Ptr gen_wat(WasmContext &ctx) override;
 private:
     Node::Ptr m_left;
     Node::Ptr m_right;

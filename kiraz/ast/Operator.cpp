@@ -43,6 +43,17 @@ Node::Ptr Add::compute_stmt_type(SymbolTable &st) {
     return nullptr;
 }
 
+Node::Ptr Add::gen_wat(WasmContext &ctx) {
+    auto err = m_left->gen_wat(ctx);
+    if (err) return err;
+    
+    err = m_right->gen_wat(ctx);
+    if (err) return err;
+    
+    ctx.body() << "i64.add\n";
+    return nullptr;
+}
+
 Node::Ptr Sub::compute_stmt_type(SymbolTable &st) {
     Node::compute_stmt_type(st);
     
@@ -112,6 +123,17 @@ Node::Ptr OpEq::compute_stmt_type(SymbolTable &st) {
     err = m_right->compute_stmt_type(st);
     if (err) return err;
     
+    return nullptr;
+}
+
+Node::Ptr OpEq::gen_wat(WasmContext &ctx) {
+    auto err = m_left->gen_wat(ctx);
+    if (err) return err;
+    
+    err = m_right->gen_wat(ctx);
+    if (err) return err;
+    
+    ctx.body() << "i64.eq\n";
     return nullptr;
 }
 

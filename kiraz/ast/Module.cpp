@@ -43,4 +43,23 @@ const SymbolTable *Module::get_subsymbol_all() const {
     return nullptr;
 }
 
+Node::Ptr Module::gen_wat(WasmContext &ctx) {
+    ctx.body() << "(module\n";
+    ctx.body() << "(type $print_s (func (param i32 i32 i32)))\n";
+    ctx.body() << "(type $print_i (func (param i32 i64)))\n";
+    ctx.body() << "(type $print_b (func (param i32 i32)))\n";
+    ctx.body() << "(import \"io\" \"memory\" (memory 1))\n";
+    ctx.body() << "(import \"io\" \"print_s\" (func $print_s (type $print_s)))\n";
+    ctx.body() << "(import \"io\" \"print_i\" (func $print_i (type $print_i)))\n";
+    ctx.body() << "(import \"io\" \"print_b\" (func $print_b (type $print_b)))\n";
+    
+    for (auto &stmt : m_stmts) {
+        auto err = stmt->gen_wat(ctx);
+        if (err) return err;
+    }
+    
+    ctx.body() << ")\n";
+    return nullptr;
+}
+
 }

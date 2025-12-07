@@ -22,6 +22,7 @@ public:
     Ptr compute_stmt_type(SymbolTable &st) override;
     SymTabEntry get_subsymbol(Ptr subsymbol) const override;
     const SymbolTable *get_subsymbol_all() const override;
+    Ptr gen_wat(WasmContext &ctx) override;
     
 private:
     std::vector<Node::Ptr> m_stmts;

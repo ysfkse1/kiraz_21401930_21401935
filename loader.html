@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kiraz WASM Loader</title>
+</head>
+<body>
+    <h1>Kiraz WASM Loader</h1>
+    <input type="file" id="wasmFile" accept=".wasm">
+    <button onclick="runWasm()">Run</button>
+    <pre id="output"></pre>
+
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(msg) {
+            output.textContent += msg + '\n';
+            console.log(msg);
+        }
+
+        const importObject = {
+            env: {
+                print_str: function(ptr, len) {
+                    const bytes = new Uint8Array(memory.buffer, ptr, len);
+                    const str = new TextDecoder().decode(bytes);
+                    log(str.replace(/\n$/, ''));
+                },
+                print_int: function(val) {
+                    log(val.toString());
+                },
+                print_bool: function(val) {
+                    log(val ? 'true' : 'false');
+                }
+            }
+        };
+
+        let memory;
+
+        async function runWasm() {
+            output.textContent = '';
+            const file = document.getElementById('wasmFile').files[0];
+            if (!file) {
+                log('Select a .wasm file first');
+                return;
+            }
+            
+            try {
+                const buffer = await file.arrayBuffer();
+                const result = await WebAssembly.instantiate(buffer, importObject);
+                memory = result.instance.exports.memory;
+                if (result.instance.exports.main) {
+                    const ret = result.instance.exports.main();
+                    log('main() returned: ' + ret);
+                }
+            } catch (e) {
+                log('Error: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -11,6 +11,8 @@ public:
         return fmt::format("Int({})", m_value);
     }
     Ptr compute_stmt_type(SymbolTable &st) override;
+    Ptr gen_wat(WasmContext &ctx) override;
+    long long get_value() const { return m_value; }
 private:
     long long m_value;
 };
@@ -24,6 +26,7 @@ public:
     const std::string& get_name() const { return m_name; }
     SymTabEntry get_symbol(const SymbolTable &st) const override;
     Ptr compute_stmt_type(SymbolTable &st) override;
+    Ptr gen_wat(WasmContext &ctx) override;
 private:
     std::string m_name;
 };
@@ -45,6 +48,8 @@ public:
         return fmt::format("Str({})", m_value);
     }
     Ptr compute_stmt_type(SymbolTable &st) override;
+    Ptr gen_wat(WasmContext &ctx) override;
+    const std::string& get_value() const { return m_value; }
 private:
     std::string m_value;
 };

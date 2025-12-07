@@ -45,9 +45,32 @@ Node::Ptr Integer::compute_stmt_type(SymbolTable &st) {
     return nullptr;
 }
 
+Node::Ptr Integer::gen_wat(WasmContext &ctx) {
+    ctx.body() << "i64.const " << m_value << "\n";
+    return nullptr;
+}
+
 Node::Ptr Str::compute_stmt_type(SymbolTable &st) {
     Node::compute_stmt_type(st);
     set_stmt_type(std::make_shared<Id>("String"));
+    return nullptr;
+}
+
+Node::Ptr Str::gen_wat(WasmContext &ctx) {
+    auto coords = ctx.add_to_memory(m_value);
+    ctx.body() << "i32.const " << coords.offset << "\n";
+    ctx.body() << "i32.const " << coords.length << "\n";
+    return nullptr;
+}
+
+Node::Ptr Id::gen_wat(WasmContext &ctx) {
+    if (m_name == "true") {
+        ctx.body() << "i32.const 1\n";
+    } else if (m_name == "false") {
+        ctx.body() << "i32.const 0\n";
+    } else {
+        ctx.body() << "local.get $" << m_name << "\n";
+    }
     return nullptr;
 }
 

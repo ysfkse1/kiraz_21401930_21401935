@@ -182,6 +182,29 @@ Node::Ptr Let::compute_stmt_type(SymbolTable &st) {
     return nullptr;
 }
 
+Node::Ptr Let::gen_wat(WasmContext &ctx) {
+    auto var_name = dynamic_cast<Id*>(m_name.get())->get_name();
+    auto var_type = get_stmt_type();
+    auto type_id = dynamic_cast<const Id*>(var_type.get());
+    std::string wat_type = "i64";
+    if (type_id) {
+        auto type_name = type_id->get_name();
+        if (type_name == "Boolean") {
+            wat_type = "i32";
+        }
+    }
+    
+    ctx.locals() << "(local $" << var_name << " " << wat_type << ")\n";
+    
+    if (m_init) {
+        auto err = m_init->gen_wat(ctx);
+        if (err) return err;
+        ctx.body() << "local.set $" << var_name << "\n";
+    }
+    
+    return nullptr;
+}
+
 Node::Ptr Func::compute_stmt_type(SymbolTable &st) {
     Node::compute_stmt_type(st);
     
@@ -713,6 +736,123 @@ Node::Ptr Import::add_to_symtab_forward(SymbolTable &st) {
     
     st.add_symbol(module_name, module_root);
     
+    return nullptr;
+}
+
+Node::Ptr Func::gen_wat(WasmContext &ctx) {
+    auto func_name = dynamic_cast<Id*>(m_name.get())->get_name();
+    auto ret_type = dynamic_cast<Id*>(m_ret_type.get());
+    
+    ctx.body() << "(func $" << func_name;
+    
+    if (m_args) {
+        auto func_args = dynamic_cast<FuncArgs*>(m_args.get());
+        if (func_args) {
+            for (auto &arg : func_args->get_args()) {
+                auto farg = dynamic_cast<FArg*>(arg.get());
+                if (farg) {
+                    auto arg_name = dynamic_cast<Id*>(farg->get_name().get())->get_name();
+                    auto arg_type = dynamic_cast<Id*>(farg->get_type().get())->get_name();
+                    std::string wat_type = (arg_type == "Integer64") ? "i64" : "i32";
+                    ctx.body() << " (param $" << arg_name << " " << wat_type << ")";
+                }
+            }
+        }
+    }
+    
+    if (ret_type) {
+        auto ret_name = ret_type->get_name();
+        if (ret_name == "Integer64") {
+            ctx.body() << " (result i64)";
+        } else if (ret_name != "Null") {
+            ctx.body() << " (result i32)";
+        }
+    }
+    
+    ctx.body() << "\n";
+    ctx.push();
+    
+    for (auto &stmt : m_stmts) {
+        auto err = stmt->gen_wat(ctx);
+        if (err) return err;
+    }
+    
+    ctx.pop();
+    ctx.body() << ")\n";
+    
+    if (func_name == "main") {
+        ctx.body() << "(export \"main\" (func $main))\n";
+    }
+    
+    return nullptr;
+}
+
+Node::Ptr If::gen_wat(WasmContext &ctx) {
+    auto err = m_condition->gen_wat(ctx);
+    if (err) return err;
+    
+    ctx.body() << "if\n";
+    
+    for (auto &stmt : m_then_stmts) {
+        err = stmt->gen_wat(ctx);
+        if (err) return err;
+    }
+    
+    if (m_else_part) {
+        ctx.body() << "else\n";
+        err = m_else_part->gen_wat(ctx);
+        if (err) return err;
+    }
+    
+    ctx.body() << "end\n";
+    return nullptr;
+}
+
+Node::Ptr ElseBlock::gen_wat(WasmContext &ctx) {
+    for (auto &stmt : m_stmts) {
+        auto err = stmt->gen_wat(ctx);
+        if (err) return err;
+    }
+    return nullptr;
+}
+
+Node::Ptr Return::gen_wat(WasmContext &ctx) {
+    if (m_expr) {
+        auto err = m_expr->gen_wat(ctx);
+        if (err) return err;
+    }
+    ctx.body() << "return\n";
+    return nullptr;
+}
+
+Node::Ptr Call::gen_wat(WasmContext &ctx) {
+    auto dot = dynamic_cast<Dot*>(m_name.get());
+    if (dot) {
+        auto left = dynamic_cast<Id*>(dot->get_left().get());
+        auto right = dynamic_cast<Id*>(dot->get_right().get());
+        if (left && right && left->get_name() == "io" && right->get_name() == "print") {
+            auto args_node = dynamic_cast<ListNode*>(m_args.get());
+            if (args_node && !args_node->get_items().empty()) {
+                auto arg = args_node->get_items()[0];
+                auto arg_type = arg->get_stmt_type();
+                auto type_id = dynamic_cast<const Id*>(arg_type.get());
+                
+                auto err = arg->gen_wat(ctx);
+                if (err) return err;
+                
+                if (type_id) {
+                    auto type_name = type_id->get_name();
+                    if (type_name == "String") {
+                        ctx.body() << "call $io.print_s\n";
+                    } else if (type_name == "Integer64") {
+                        ctx.body() << "call $io.print_i\n";
+                    } else if (type_name == "Boolean") {
+                        ctx.body() << "call $io.print_b\n";
+                    }
+                }
+            }
+        }
+    }
     return nullptr;
 }
  

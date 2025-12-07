@@ -27,6 +27,7 @@ public:
  
     Ptr add_to_symtab_ordered(SymbolTable &st) override;
     Ptr compute_stmt_type(SymbolTable &st) override;
+    Ptr gen_wat(WasmContext &ctx) override;
     
     Node::Ptr get_name() const { return m_name; }
     Node::Ptr get_type() const { return m_type; }
@@ -121,10 +122,12 @@ public:
     bool is_func() const override { return true; }
     Ptr add_to_symtab_forward(SymbolTable &st) override;
     Ptr compute_stmt_type(SymbolTable &st) override;
+    Ptr gen_wat(WasmContext &ctx) override;
     
     Node::Ptr get_name() const { return m_name; }
     Node::Ptr get_args() const { return m_args; }
     Node::Ptr get_ret_type() const { return m_ret_type; }
+    const std::vector<Node::Ptr>& get_stmts() const { return m_stmts; }
     
 private:
     Node::Ptr m_name;
@@ -160,6 +163,7 @@ public:
         return result;
     }
     Ptr compute_stmt_type(SymbolTable &st) override;
+    Ptr gen_wat(WasmContext &ctx) override;
     
 private:
     Node::Ptr m_condition;
@@ -181,6 +185,9 @@ public:
         result += "]";
         return result;
     }
+    
+    Ptr gen_wat(WasmContext &ctx) override;
+    const std::vector<Node::Ptr>& get_stmts() const { return m_stmts; }
     
 private:
     std::vector<Node::Ptr> m_stmts;
@@ -242,6 +249,7 @@ public:
         return fmt::format("Return({})", m_expr->as_string());
     }
     Ptr compute_stmt_type(SymbolTable &st) override;
+    Ptr gen_wat(WasmContext &ctx) override;
     
     Node::Ptr get_expr() const { return m_expr; }
     
@@ -275,6 +283,7 @@ public:
     }
     
     Ptr compute_stmt_type(SymbolTable &st) override;
+    Ptr gen_wat(WasmContext &ctx) override;
     
     Node::Ptr get_name() const { return m_name; }
     Node::Ptr get_args() const { return m_args; }
