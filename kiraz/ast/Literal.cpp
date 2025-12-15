@@ -57,7 +57,13 @@ Node::Ptr Str::compute_stmt_type(SymbolTable &st) {
 }
 
 Node::Ptr Str::gen_wat(WasmContext &ctx) {
-    auto coords = ctx.add_to_memory(m_value);
+    // Remove trailing newlines from string literals
+    std::string value = m_value;
+    while (!value.empty() && value.back() == '\n') {
+        value.pop_back();
+    }
+    
+    auto coords = ctx.add_to_memory(value);
     ctx.body() << "i32.const " << coords.offset << "\n";
     ctx.body() << "i32.const " << coords.length << "\n";
     return nullptr;
