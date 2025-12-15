@@ -60,11 +60,13 @@ if (KIRAZ_TEST_WASMGEN)
             kiraz/test/wasm.cc
         )
 
+        target_link_directories(mozjs-i9n PUBLIC ${MOZJS_LIBRARY_DIRS})
         target_link_libraries(mozjs-i9n ${MOZJS_LIBRARIES})
         target_include_directories(mozjs-i9n SYSTEM PUBLIC ${MOZJS_INCLUDE_DIRS} ${MOZJS_CFLAGS_OTHER})
         # target_compile_definitions(mozjs-i9n PUBLIC DEBUG)
 
         target_include_directories(test_wasmgen SYSTEM PUBLIC ${MOZJS_INCLUDE_DIRS} ${MOZJS_CFLAGS_OTHER})
+        target_link_directories(test_wasmgen PUBLIC ${MOZJS_LIBRARY_DIRS})
         target_link_libraries(test_wasmgen mozjs-i9n ${MOZJS_LIBRARIES})
         target_compile_definitions(test_wasmgen PRIVATE KIRAZ_HAVE_MOZJS)
 

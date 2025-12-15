@@ -58,6 +58,17 @@ Node::Ptr Module::gen_wat(WasmContext &ctx) {
         if (err) return err;
     }
     
+    // Write memory data section if there's any data
+    auto memory_view = ctx.get_memory_view();
+    if (!memory_view.empty()) {
+        ctx.body() << "(data (i32.const 0) \"";
+        for (unsigned char c : memory_view) {
+            ctx.body() << "\\"; 
+            ctx.body() << fmt::format("{:02x}", c);
+        }
+        ctx.body() << "\")\n";
+    }
+    
     ctx.body() << ")\n";
     return nullptr;
 }

@@ -186,6 +186,7 @@ public:
         return result;
     }
     
+    Ptr compute_stmt_type(SymbolTable &st) override;
     Ptr gen_wat(WasmContext &ctx) override;
     const std::vector<Node::Ptr>& get_stmts() const { return m_stmts; }
     

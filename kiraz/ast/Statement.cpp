@@ -375,6 +375,17 @@ Node::Ptr While::compute_stmt_type(SymbolTable &st) {
     return nullptr;
 }
  
+Node::Ptr ElseBlock::compute_stmt_type(SymbolTable &st) {
+    Node::compute_stmt_type(st);
+    
+    for (auto &stmt : m_stmts) {
+        auto err = stmt->compute_stmt_type(st);
+        if (err) return err;
+    }
+    
+    return nullptr;
+}
+
 Node::Ptr If::compute_stmt_type(SymbolTable &st) {
     Node::compute_stmt_type(st);
     
@@ -831,11 +842,14 @@ Node::Ptr Call::gen_wat(WasmContext &ctx) {
         auto left = dynamic_cast<Id*>(dot->get_left().get());
         auto right = dynamic_cast<Id*>(dot->get_right().get());
         if (left && right && left->get_name() == "io" && right->get_name() == "print") {
-            auto args_node = dynamic_cast<ListNode*>(m_args.get());
-            if (args_node && !args_node->get_items().empty()) {
-                auto arg = args_node->get_items()[0];
+            auto args_node = dynamic_cast<FuncArgs*>(m_args.get());
+            if (args_node && !args_node->get_args().empty()) {
+                auto arg = args_node->get_args()[0];
                 auto arg_type = arg->get_stmt_type();
                 auto type_id = dynamic_cast<const Id*>(arg_type.get());
+                
+                // Push is_void parameter (0 = not void)
+                ctx.body() << "i32.const 0\n";
                 
                 auto err = arg->gen_wat(ctx);
                 if (err) return err;
@@ -843,11 +857,11 @@ Node::Ptr Call::gen_wat(WasmContext &ctx) {
                 if (type_id) {
                     auto type_name = type_id->get_name();
                     if (type_name == "String") {
-                        ctx.body() << "call $io.print_s\n";
+                        ctx.body() << "call $print_s\n";
                     } else if (type_name == "Integer64") {
-                        ctx.body() << "call $io.print_i\n";
+                        ctx.body() << "call $print_i\n";
                     } else if (type_name == "Boolean") {
-                        ctx.body() << "call $io.print_b\n";
+                        ctx.body() << "call $print_b\n";
                     }
                 }
             }
