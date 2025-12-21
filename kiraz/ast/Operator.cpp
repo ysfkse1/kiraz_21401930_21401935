@@ -1,3 +1,4 @@
+
 #include "Operator.h"
 #include "Literal.h"
 #include <kiraz/Compiler.h>
@@ -122,6 +123,8 @@ Node::Ptr OpEq::compute_stmt_type(SymbolTable &st) {
     
     err = m_right->compute_stmt_type(st);
     if (err) return err;
+    
+    set_stmt_type(std::make_shared<Id>("Boolean"));
     
     return nullptr;
 }
