@@ -1,6 +1,7 @@
 #include "Statement.h"
 #include "Literal.h"
 #include "Module.h"
+#include "Operator.h"
 #include <kiraz/Compiler.h>
 #include <fstream>
  
@@ -200,6 +201,10 @@ Node::Ptr Let::gen_wat(WasmContext &ctx) {
         auto err = m_init->gen_wat(ctx);
         if (err) return err;
         ctx.body() << "local.set $" << var_name << "\n";
+        ctx.mark_variable_initialized(var_name);
+    } else {
+
+        ctx.mark_variable_uninitialized(var_name);
     }
     
     return nullptr;
@@ -848,14 +853,36 @@ Node::Ptr Call::gen_wat(WasmContext &ctx) {
                 auto arg_type = arg->get_stmt_type();
                 auto type_id = dynamic_cast<const Id*>(arg_type.get());
                 
-                // Push is_void parameter (0 = not void)
-                ctx.body() << "i32.const 0\n";
-                
-                auto err = arg->gen_wat(ctx);
-                if (err) return err;
-                
                 if (type_id) {
                     auto type_name = type_id->get_name();
+                    
+                    // Check if argument is an uninitialized variable or expression with uninitialized operands
+                    bool is_void = false;
+                    auto arg_id = dynamic_cast<Id*>(arg.get());
+                    if (arg_id && arg_id->get_name() != "true" && arg_id->get_name() != "false") {
+                        is_void = ctx.is_variable_uninitialized(arg_id->get_name());
+                    } else {
+                        // Check if it's an Add operation with uninitialized operands
+                        auto add_op = dynamic_cast<Add*>(arg.get());
+                        if (add_op) {
+                            // Check both operands
+                            auto left_id = dynamic_cast<Id*>(add_op->get_left().get());
+                            auto right_id = dynamic_cast<Id*>(add_op->get_right().get());
+                            
+                            bool left_uninit = left_id && ctx.is_variable_uninitialized(left_id->get_name());
+                            bool right_uninit = right_id && ctx.is_variable_uninitialized(right_id->get_name());
+                            
+                            // If either operand is uninitialized, the result is void
+                            is_void = left_uninit || right_uninit;
+                        }
+                    }
+                    
+                    // Void marker: 1 if uninitialized, 0 otherwise
+                    ctx.body() << "i32.const " << (is_void ? "1" : "0") << "\n";
+                    
+                    auto err = arg->gen_wat(ctx);
+                    if (err) return err;
+                    
                     if (type_name == "String") {
                         ctx.body() << "call $print_s\n";
                     } else if (type_name == "Integer64") {

@@ -15,6 +15,8 @@ public:
     }
     Ptr compute_stmt_type(SymbolTable &st) override;
     Ptr gen_wat(WasmContext &ctx) override;
+    const Node::Ptr& get_left() const { return m_left; }
+    const Node::Ptr& get_right() const { return m_right; }
 private:
     Node::Ptr m_left;
     Node::Ptr m_right;

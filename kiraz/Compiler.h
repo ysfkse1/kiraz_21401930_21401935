@@ -174,6 +174,15 @@ public:
     auto &body() { return m_streams.back().body; }
     auto &body() const { return m_streams.back().body; }
     auto &locals() { return m_streams.back().locals; }
+    void mark_variable_uninitialized(const std::string &name) {
+        m_uninitialized_vars.insert(name);
+    }
+    void mark_variable_initialized(const std::string &name) {
+        m_uninitialized_vars.erase(name);
+    }
+    bool is_variable_uninitialized(const std::string &name) const {
+        return m_uninitialized_vars.count(name) > 0;
+    }
  
     void push() { m_streams.emplace_back(); }
     void pop() {
@@ -192,6 +201,7 @@ public:
 private:
     std::vector<unsigned char> m_memory;
     std::vector<Streams> m_streams;
+    std::set<std::string> m_uninitialized_vars;
 };
  
 class Compiler {
